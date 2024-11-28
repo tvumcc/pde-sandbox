@@ -91,7 +91,7 @@ int main() {
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
-			grid.brush((int)x_pos, (int)y_pos, 10, 0.9);
+			grid.brush((int)x_pos, (int)y_pos, 5, 1.0);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();

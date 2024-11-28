@@ -21,7 +21,7 @@ Grid::Grid(int width, int height, int num_layers) {
 
     // Initialize the data SSBOs
     ssbos = std::vector<unsigned int>(num_layers);
-    std::vector<float> initial_data = std::vector<float>(width * height, 0.2);
+    std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
     for (int i = 0; i < ssbos.size(); i++) {
         glGenBuffers(1, &ssbos[i]);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
