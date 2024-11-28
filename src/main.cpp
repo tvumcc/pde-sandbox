@@ -9,11 +9,13 @@
 #include <stb/stb_image.h>
 
 #include "shader.hpp"
+#include "grid.hpp"
 
 #include <iostream>
 
 unsigned int WINDOW_WIDTH = 1000;
 unsigned int WINDOW_HEIGHT = 800;
+unsigned int texture;
 float r = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -21,10 +23,10 @@ void process_input(GLFWwindow* window);
 
 int main() {
 	float vertices[] = {
-		 1.0f,  1.0f, 0.0f, 1.0f, 1.0f,   // top right
-		 1.0f, -1.0f, 0.0f, 1.0f, 0.0f,   // bottom right
-		-1.0f, -1.0f, 0.0f, 0.0f, 0.0f,   // bottom left
-		-1.0f,  1.0f, 0.0f, 0.0f, 1.0f    // top left 
+		 1.0f,  1.0f, 0.0f, 1.0f, 0.0f,   // top right
+		 1.0f, -1.0f, 0.0f, 1.0f, 1.0f,   // bottom right
+		-1.0f, -1.0f, 0.0f, 0.0f, 1.0f,   // bottom left
+		-1.0f,  1.0f, 0.0f, 0.0f, 0.0f    // top left 
 	};
 
 	unsigned int indices[] = {
@@ -69,20 +71,13 @@ int main() {
 	glEnableVertexAttribArray(1);
 	glBindVertexArray(0);
 
-	unsigned int texture;
-	int width, height, channels;
-	stbi_set_flip_vertically_on_load(true);
-	unsigned char* data = stbi_load("assets/aurora.png", &width, &height, &channels, 0);
-	glGenTextures(1, &texture);
-	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
-	glGenerateMipmap(GL_TEXTURE_2D);
-	stbi_image_free(data);
-	float brightness = 1.0f;
+	ComputeShader cs("shaders/heat.glsl");
+	cs.bind();
+
+	Grid grid(WINDOW_WIDTH, WINDOW_HEIGHT, 1);
+	grid.brush(100, 100, 20, 0.5);
+	cs.set_int("width", grid.width);
+	cs.set_int("height", grid.height);
 
 	Shader shader("shaders/default.vert", "shaders/default.frag");
     shader.bind();
@@ -93,20 +88,28 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			double x_pos, y_pos;
+			glfwGetCursorPos(window, &x_pos, &y_pos);
+			grid.brush((int)x_pos, (int)y_pos, 10, 0.9);
+		}
+
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
 
 		// ImGui Stuff Goes Here
-		ImGui::ShowDemoWindow();
 		ImGui::Begin("Menu");
-		ImGui::SliderFloat("Brightness", &brightness, 0.0f, 1.0f);
+		ImGui::Text("Hi");
 		ImGui::End();
 
+		cs.bind();
+		glDispatchCompute(WINDOW_WIDTH, WINDOW_HEIGHT, 1);
+		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+
 		shader.bind();
-		shader.set_float("brightness", brightness);
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texture);
+		glBindTexture(GL_TEXTURE_2D, grid.image);
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -134,4 +137,8 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 	glViewport(0, 0, width, height);
 	WINDOW_WIDTH = width;
 	WINDOW_HEIGHT = height;
+
+	// glActiveTexture(GL_TEXTURE0);
+	// glBindTexture(GL_TEXTURE_2D, texture);
+	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
 }
