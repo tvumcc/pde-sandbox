@@ -10,7 +10,7 @@ public:
     unsigned int image;
     std::vector<unsigned int> ssbos;
 
-    Grid(int width, int height, int num_layers);
+    Grid(int width, int height, int num_layers, float initial_layer_value = 0.0);
 
-    void brush(int x_pos, int y_pos, int radius, float value);
+    void brush(int x_pos, int y_pos, int radius, float value, int layer_idx);
 };

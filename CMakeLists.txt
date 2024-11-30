@@ -3,7 +3,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-project(template)
+project(pdes)
 
 add_subdirectory("lib/glfw")
 find_package(OpenGL REQUIRED)
