@@ -8,6 +8,7 @@
 Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
     this->width = width;
     this->height = height;
+    this->brush_layer = 0;
 
     // Initialize the output image texture
 	glGenTextures(1, &image);
@@ -32,11 +33,11 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
 }
 
 // Draws a circle at (x_pos, y_pos) with a radius placing a floating value at each cell within a circle on the SSBO specified by index
-void Grid::brush(int x_pos, int y_pos, int radius, float value, int layer_idx) {
+void Grid::brush(int x_pos, int y_pos, int radius, float value) {
     if (x_pos < 0 || x_pos >= width || y_pos < 0 || y_pos >= height) return;
 
     // Bind the layer's corresponding SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[layer_idx]);
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
 
     // Indices into the mapped buffer range. These must be mapped from 2D into 1D because SSBOs are solely 1D
     int begin = std::max(y_pos - radius, 0) * width;
@@ -66,4 +67,21 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value, int layer_idx) {
 
     // Make sure unmap the pointer because persistent mapping is not yet being used
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
+}
+
+void Grid::resize(int width, int height) {
+    this->width = width;
+    this->height = height;
+
+    glBindTexture(GL_TEXTURE_2D, image);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
+    for (int i = 0; i < ssbos.size(); i++) {
+        glGenBuffers(1, &ssbos[i]);
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
+        glBufferData(GL_SHADER_STORAGE_BUFFER, width * height * sizeof(float), initial_data.data(), GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
+    }
 }

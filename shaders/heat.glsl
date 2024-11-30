@@ -9,6 +9,7 @@ layout (std430, binding = 0) buffer ssbo1
 
 layout (location = 0) uniform int width;
 layout (location = 1) uniform int height;
+layout (location = 2) uniform float alpha;
 
 // Credit to https://www.shadertoy.com/view/Nd3fR2 for the MPL color maps
 
@@ -41,24 +42,22 @@ int getPosition(int x, int y) {
 }
 
 float U(int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return 0.0; // Dirichlet Boundary Condition
     int position = getPosition(x, y);
-    if (position < 0 || position >= width * height) return 0.0;
-    else return u[position];
+    return u[position];
 }
 
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
-
-    float alpha = 3.0;
     float delta_x = 1.0;
     float delta_y = 1.0;
     float dt = 0.1;
 
     // using dirchlet boundary condition
 
-    float d2u_dx2 = U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y) / (delta_x * delta_x);
-    float d2u_dy2 = U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y) / (delta_y * delta_y);
+    float d2u_dx2 = (U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y)) / (delta_x * delta_x);
+    float d2u_dy2 = (U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y)) / (delta_y * delta_y);
     float du_dt = alpha * (d2u_dx2 + d2u_dy2);
 
 

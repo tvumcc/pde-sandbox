@@ -5,12 +5,17 @@ class Grid {
 public:
     int width;
     int height;
+    int brush_layer;
 
     // Buffer IDs
     unsigned int image;
     std::vector<unsigned int> ssbos;
 
-    Grid(int width, int height, int num_layers, float initial_layer_value = 0.0);
+    Grid(int width = 0, int height = 0, int num_layers = 0, float initial_layer_value = 0.0);
 
-    void brush(int x_pos, int y_pos, int radius, float value, int layer_idx);
+    void brush(int x_pos, int y_pos, int radius, float value);
+    void resize(int width, int height);
+
+    virtual void solve() = 0;
+    virtual void gui() = 0;
 };

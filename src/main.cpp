@@ -9,14 +9,27 @@
 
 #include "shader.hpp"
 #include "grid.hpp"
+#include "heat.hpp"
 
 #include <iostream>
+#include <vector>
+#include <memory>
 
 GLFWwindow* window;
 unsigned int WINDOW_WIDTH = 1000;
 unsigned int WINDOW_HEIGHT = 800;
+unsigned int GUI_WIDTH = 300;
 unsigned int VAO, VBO, EBO;
 float r = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
+
+const char* cmaps[] = {"Viridis", "Blues_r"};
+int current_cmap = 0;
+const char* sims[] = {"Heat Equation"};
+int current_sim = 0;
+
+std::vector<std::unique_ptr<Grid>> pdes;
+
+int brush_radius = 10;
 
 void process_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -25,13 +38,8 @@ void setup();
 int main() {
 	setup();
 
-	ComputeShader cs("shaders/heat.glsl");
-	cs.bind();
-
-	Grid grid(WINDOW_WIDTH, WINDOW_HEIGHT, 1);
-	grid.brush(100, 100, 20, 0.5, 0);
-	cs.set_int("width", grid.width);
-	cs.set_int("height", grid.height);
+	pdes.emplace_back(std::make_unique<Heat>(WINDOW_WIDTH, WINDOW_HEIGHT));
+	framebuffer_size_callback(window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Shader shader("shaders/default.vert", "shaders/default.frag");
     shader.bind();
@@ -45,7 +53,7 @@ int main() {
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
-			grid.brush((int)x_pos, (int)y_pos, 5, 1.0, 0);
+			pdes[current_sim]->brush((int)x_pos, (int)y_pos, brush_radius, 1.0);
 		}
 
 		ImGui_ImplOpenGL3_NewFrame();
@@ -53,17 +61,46 @@ int main() {
 		ImGui::NewFrame();
 
 		// ImGui Stuff Goes Here
-		ImGui::Begin("Menu");
-		ImGui::Text("Hi");
+		const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
+		ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + main_viewport->WorkSize.x - GUI_WIDTH, main_viewport->WorkPos.y));
+		ImGui::SetNextWindowSize(ImVec2(GUI_WIDTH, main_viewport->WorkSize.y));
+		ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+
+		ImGui::Begin("Settings Menu", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
+		{
+			ImGui::SeparatorText("General Settings");
+			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+			{
+				ImGui::Text("Simulation");
+				ImGui::Combo("##Simulation", &current_sim, sims, IM_ARRAYSIZE(sims));
+			}
+			{
+				ImGui::Text("Color Map");
+				ImGui::Combo("##Color Map", &current_cmap, cmaps, IM_ARRAYSIZE(cmaps));
+			}
+			{
+				ImGui::Text("Brush Radius");
+				ImGui::SliderInt("##Brush Radius", &brush_radius, 1, 100);
+			}
+			ImGui::PopItemWidth();
+		}
+		{
+			ImGui::SeparatorText(sims[current_sim]);
+			ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
+			pdes[current_sim]->gui();
+			ImGui::PopItemWidth();
+		}
 		ImGui::End();
 
-		cs.bind();
-		glDispatchCompute(WINDOW_WIDTH, WINDOW_HEIGHT, 1);
-		glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
+		ImGui::PopStyleColor();
+
+		// ImGui::ShowDemoWindow();
+
+		pdes[current_sim]->solve();
 
 		shader.bind();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, grid.image);
+		glBindTexture(GL_TEXTURE_2D, pdes[current_sim]->image);
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -88,13 +125,12 @@ void process_input(GLFWwindow* window) {
 }
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-	glViewport(0, 0, width, height);
 	WINDOW_WIDTH = width;
 	WINDOW_HEIGHT = height;
 
-	// glActiveTexture(GL_TEXTURE0);
-	// glBindTexture(GL_TEXTURE_2D, texture);
-	// glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, WINDOW_WIDTH, WINDOW_HEIGHT, 0, GL_RGBA, GL_FLOAT, NULL);
+	glViewport(0, 0, WINDOW_WIDTH - GUI_WIDTH, WINDOW_HEIGHT);
+	for (int i = 0; i < pdes.size(); i++)
+		pdes[i]->resize(WINDOW_WIDTH - GUI_WIDTH, WINDOW_HEIGHT);
 }
 
 void setup() {

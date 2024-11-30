@@ -1,0 +1,28 @@
+#include <glad/glad.h>
+#include <imgui/imgui.h>
+
+#include "heat.hpp"
+
+Heat::Heat(int width, int height) 
+    : Grid(width, height, 1, 0.0), heatCS("shaders/heat.glsl")
+{
+    this->dt = 0.05;
+    this->dx = 1.0;
+    this->dy = 1.0;
+    this->diffusion = 1.0;
+}
+
+void Heat::solve() {
+    heatCS.bind();
+    heatCS.set_int("width", this->width);
+    heatCS.set_int("height", this->height);
+    heatCS.set_float("alpha", this->diffusion);
+
+    glDispatchCompute(this->width, this->height, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+}
+
+void Heat::gui() {
+    ImGui::Text("Diffusion");
+    ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
+}
