@@ -6,6 +6,7 @@ public:
     int width;
     int height;
     int brush_layer;
+    int unit_idx;
 
     // Buffer IDs
     unsigned int image;
@@ -15,6 +16,7 @@ public:
 
     void brush(int x_pos, int y_pos, int radius, float value);
     void resize(int width, int height);
+    void bind();
 
     virtual void solve() = 0;
     virtual void gui() = 0;

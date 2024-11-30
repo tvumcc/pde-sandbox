@@ -3,6 +3,7 @@
 #include "grid.hpp"
 
 #include <algorithm>
+#include <iostream>
 
 // Constructs a new 2D grid with a given width and height and number of layers. Each layer corresponds to its own SSBO of floats
 Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
@@ -12,7 +13,6 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
 
     // Initialize the output image texture
 	glGenTextures(1, &image);
-	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -82,6 +82,16 @@ void Grid::resize(int width, int height) {
         glGenBuffers(1, &ssbos[i]);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
         glBufferData(GL_SHADER_STORAGE_BUFFER, width * height * sizeof(float), initial_data.data(), GL_DYNAMIC_DRAW);
+        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
+    }
+}
+
+void Grid::bind() {
+    glBindTexture(GL_TEXTURE_2D, this->image);
+	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
+
+    for (int i = 0; i < ssbos.size(); i++) {
+        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
         glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
     }
 }

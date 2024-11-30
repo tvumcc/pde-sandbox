@@ -10,6 +10,7 @@
 #include "shader.hpp"
 #include "grid.hpp"
 #include "heat.hpp"
+#include "gray_scott.hpp"
 
 #include <iostream>
 #include <vector>
@@ -24,7 +25,7 @@ float r = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
 
 const char* cmaps[] = {"Viridis", "Blues_r"};
 int current_cmap = 0;
-const char* sims[] = {"Heat Equation"};
+const char* sims[] = {"Heat Equation", "Gray Scott Reaction Diffusion"};
 int current_sim = 0;
 
 std::vector<std::unique_ptr<Grid>> pdes;
@@ -39,6 +40,7 @@ int main() {
 	setup();
 
 	pdes.emplace_back(std::make_unique<Heat>(WINDOW_WIDTH, WINDOW_HEIGHT));
+	pdes.emplace_back(std::make_unique<GrayScott>(WINDOW_WIDTH, WINDOW_HEIGHT));
 	framebuffer_size_callback(window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Shader shader("shaders/default.vert", "shaders/default.frag");
@@ -50,15 +52,12 @@ int main() {
 		glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
-			double x_pos, y_pos;
-			glfwGetCursorPos(window, &x_pos, &y_pos);
-			pdes[current_sim]->brush((int)x_pos, (int)y_pos, brush_radius, 1.0);
-		}
 
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		pdes[current_sim]->bind();
 
 		// ImGui Stuff Goes Here
 		const ImGuiViewport* main_viewport = ImGui::GetMainViewport();
@@ -95,6 +94,12 @@ int main() {
 		ImGui::PopStyleColor();
 
 		// ImGui::ShowDemoWindow();
+
+		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
+			double x_pos, y_pos;
+			glfwGetCursorPos(window, &x_pos, &y_pos);
+			pdes[current_sim]->brush((int)x_pos, (int)y_pos, brush_radius, 1.0);
+		}
 
 		pdes[current_sim]->solve();
 

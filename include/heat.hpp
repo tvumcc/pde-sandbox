@@ -1,6 +1,4 @@
 #pragma once
-#include <GLFW/glfw3.h>
-
 #include "shader.hpp"
 #include "grid.hpp"
 

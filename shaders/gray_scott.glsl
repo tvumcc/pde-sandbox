@@ -2,13 +2,18 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout (rgba32f, binding = 0) uniform image2D imgOutput;
-layout (std430, binding = 0) buffer ssbo0 {
+layout (std430, binding = 0) buffer ssbo1 {
     float u[];
+};
+layout (std430, binding = 1) buffer ssbo2 {
+    float v[];
 };
 
 uniform int width;
 uniform int height;
-uniform float alpha;
+uniform float a;
+uniform float b;
+uniform float D;
 
 // Credit to https://www.shadertoy.com/view/Nd3fR2 for the MPL color maps
 
@@ -46,22 +51,30 @@ float U(int x, int y) {
     return u[position];
 }
 
+float V(int x, int y) {
+    if (x < 0 || x >= width || y < 0 || y >= height) return 0.0; // Dirichlet Boundary Condition
+    int position = getPosition(x, y);
+    return v[position];
+}
+
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
     float delta_x = 1.0;
     float delta_y = 1.0;
-    float dt = 0.1;
-
-    // using dirchlet boundary condition
+    float dt = 0.15;
 
     float d2u_dx2 = (U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y)) / (delta_x * delta_x);
     float d2u_dy2 = (U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y)) / (delta_y * delta_y);
-    float du_dt = alpha * (d2u_dx2 + d2u_dy2);
+    float du_dt = (d2u_dx2 + d2u_dy2) + (pow(U(location.x, location.y), 2) * V(location.x, location.y)) - (a + b) * U(location.x, location.y);
 
+    float d2v_dx2 = (V(location.x+1, location.y) + V(location.x-1, location.y) - 2 * V(location.x, location.y)) / (delta_x * delta_x);
+    float d2v_dy2 = (V(location.x, location.y+1) + V(location.x, location.y-1) - 2 * V(location.x, location.y)) / (delta_y * delta_y);
+    float dv_dt = D * (d2v_dx2 + d2v_dy2) - (pow(U(location.x, location.y), 2) * V(location.x, location.y)) + a * (1 - V(location.x, location.y));
 
     u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
+    v[getPosition(location.x, location.y)] = V(location.x, location.y) + dv_dt * dt;
 
     float luminosity = U(location.x, location.y);
-    imageStore(imgOutput, location, vec4(viridis(luminosity), 1.0));
+    imageStore(imgOutput, location, vec4(viridis(luminosity * 2.0), 1.0));
 }

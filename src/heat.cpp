@@ -3,8 +3,10 @@
 
 #include "heat.hpp"
 
+#include <iostream>
+
 Heat::Heat(int width, int height) 
-    : Grid(width, height, 1, 0.0), heatCS("shaders/heat.glsl")
+    : heatCS("shaders/heat.glsl"), Grid(width, height, 1, 0.0f)
 {
     this->dt = 0.05;
     this->dx = 1.0;
