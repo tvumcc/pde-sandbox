@@ -98,7 +98,7 @@ int main() {
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
-			pdes[current_sim]->brush((int)x_pos, (int)y_pos, brush_radius, 1.0);
+			pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
 		}
 
 		pdes[current_sim]->solve();
@@ -135,7 +135,9 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 	glViewport(0, 0, WINDOW_WIDTH - GUI_WIDTH, WINDOW_HEIGHT);
 	for (int i = 0; i < pdes.size(); i++)
-		pdes[i]->resize(WINDOW_WIDTH - GUI_WIDTH, WINDOW_HEIGHT);
+		pdes[i]->resize((WINDOW_WIDTH - GUI_WIDTH) / 8, WINDOW_HEIGHT / 8);
+	// for (int i = 0; i < pdes.size(); i++)
+	// 	pdes[i]->resize(500, 400);
 }
 
 void setup() {

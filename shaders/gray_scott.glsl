@@ -57,23 +57,62 @@ float V(int x, int y) {
     return v[position];
 }
 
-void main() {
-    ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
-    float delta_x = 1.0;
-    float delta_y = 1.0;
-    float dt = 0.15;
+float du_dt(ivec2 location, float offset, float dx, float dy) {
+    float d2u_dx2 = ((U(location.x+1, location.y) + offset) + (U(location.x-1, location.y) + offset) - 2 * (U(location.x, location.y) + offset)) / (dx * dx);
+    float d2u_dy2 = ((U(location.x, location.y+1) + offset) + (U(location.x, location.y-1) + offset) - 2 * (U(location.x, location.y) + offset)) / (dy * dy);
+    return (d2u_dx2 + d2u_dy2) + (pow(U(location.x, location.y) + offset, 2) * (V(location.x, location.y))) - (a + b) * (U(location.x, location.y) + offset);
+}
 
-    float d2u_dx2 = (U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y)) / (delta_x * delta_x);
-    float d2u_dy2 = (U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y)) / (delta_y * delta_y);
-    float du_dt = (d2u_dx2 + d2u_dy2) + (pow(U(location.x, location.y), 2) * V(location.x, location.y)) - (a + b) * U(location.x, location.y);
+float dv_dt(ivec2 location, float offset, float dx, float dy) {
+    float d2v_dx2 = ((V(location.x+1, location.y) + offset) + (V(location.x-1, location.y) + offset) - 2 * (V(location.x, location.y) + offset)) / (dx * dx);
+    float d2v_dy2 = ((V(location.x, location.y+1) + offset) + (V(location.x, location.y-1) + offset) - 2 * (V(location.x, location.y) + offset)) / (dy * dy);
+    return D * (d2v_dx2 + d2v_dy2) - (pow(U(location.x, location.y), 2) * (V(location.x, location.y) + offset)) + a * (1 - (V(location.x, location.y) + offset));
+}
 
-    float d2v_dx2 = (V(location.x+1, location.y) + V(location.x-1, location.y) - 2 * V(location.x, location.y)) / (delta_x * delta_x);
-    float d2v_dy2 = (V(location.x, location.y+1) + V(location.x, location.y-1) - 2 * V(location.x, location.y)) / (delta_y * delta_y);
-    float dv_dt = D * (d2v_dx2 + d2v_dy2) - (pow(U(location.x, location.y), 2) * V(location.x, location.y)) + a * (1 - V(location.x, location.y));
+void euler(ivec2 location, float dx, float dy, float dt) {
+    // float d2u_dx2 = (U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y)) / (dx * dx);
+    // float d2u_dy2 = (U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y)) / (dy * dy);
+    // float du_dt = (d2u_dx2 + d2u_dy2) + (pow(U(location.x, location.y), 2) * V(location.x, location.y)) - (a + b) * U(location.x, location.y);
+
+    // float d2v_dx2 = (V(location.x+1, location.y) + V(location.x-1, location.y) - 2 * V(location.x, location.y)) / (dx * dx);
+    // float d2v_dy2 = (V(location.x, location.y+1) + V(location.x, location.y-1) - 2 * V(location.x, location.y)) / (dy * dy);
+    // float dv_dt = D * (d2v_dx2 + d2v_dy2) - (pow(U(location.x, location.y), 2) * V(location.x, location.y)) + a * (1 - V(location.x, location.y));
+
+    float du_dt = du_dt(location, 0.0, dx, dy);
+    float dv_dt = dv_dt(location, 0.0, dx, dy);
 
     u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
     v[getPosition(location.x, location.y)] = V(location.x, location.y) + dv_dt * dt;
+}
+
+void RK4(ivec2 location, float dx, float dy, float dt) {
+    float k1u = du_dt(location, 0, dx, dy);
+    float k2u = du_dt(location, dt * (k1u / 2.0), dx, dy);
+    float k3u = du_dt(location, dt * (k2u / 2.0), dx, dy);
+    float k4u = du_dt(location, dt * k3u, dx, dy);
+    float du = (dt / 6.0) * (k1u + 2.0 * k2u + 2.0 * k3u + k4u);
+
+
+    float k1v = dv_dt(location, 0, dx, dy);
+    float k2v = dv_dt(location, dt * (k1v / 2.0), dx, dy);
+    float k3v = dv_dt(location, dt * (k2v / 2.0), dx, dy);
+    float k4v = dv_dt(location, dt * k3v, dx, dy);
+    float dv = (dt / 6.0) * (k1v + 2.0 * k2v + 2.0 * k3v + k4v);
+
+    u[getPosition(location.x, location.y)] = U(location.x, location.y) + du;
+    v[getPosition(location.x, location.y)] = V(location.x, location.y) + dv;
+}
+
+void main() {
+    ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+
+    float dx = 5.0;
+    float dy = 5.0;
+    float dt = 1.0;
+
+    euler(location, dx, dy, dt);
+    // RK4(location, dx, dy, dt);
 
     float luminosity = U(location.x, location.y);
     imageStore(imgOutput, location, vec4(viridis(luminosity * 2.0), 1.0));
