@@ -28,8 +28,9 @@ void GrayScott::gui() {
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
 }
 
-void GrayScott::set_uniforms(std::string cmap_str) {
+void GrayScott::set_uniforms(std::string cmap_str, bool paused) {
     gray_scottCS.bind();
+    gray_scottCS.set_bool("paused", paused);
     gray_scottCS.set_int("width", this->width);
     gray_scottCS.set_int("height", this->height);
     gray_scottCS.set_float("a", this->a);    

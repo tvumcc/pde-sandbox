@@ -32,6 +32,7 @@ int current_sim = 0;
 std::vector<std::unique_ptr<Grid>> pdes;
 
 int brush_radius = 10;
+bool paused = false;
 
 void process_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -82,6 +83,11 @@ int main() {
 				ImGui::Text("Brush Radius");
 				ImGui::SliderInt("##Brush Radius", &brush_radius, 1, 100);
 			}
+			{
+				if (ImGui::Button(paused ? "Unpause" : "Pause")) paused = !paused;
+				ImGui::SameLine();
+				if (ImGui::Button("Reset")) pdes[current_sim]->clear();
+			}
 			ImGui::PopItemWidth();
 		}
 		{
@@ -102,7 +108,7 @@ int main() {
 			pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
 		}
 
-		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap]);
+		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap], paused);
 		pdes[current_sim]->solve();
 
 		shader.bind();

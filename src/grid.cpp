@@ -72,7 +72,10 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
 void Grid::resize(int width, int height) {
     this->width = width;
     this->height = height;
+    clear();
+}
 
+void Grid::clear() {
     glBindTexture(GL_TEXTURE_2D, image);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);

@@ -25,8 +25,9 @@ void Heat::gui() {
     ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
 }
 
-void Heat::set_uniforms(std::string cmap_str) {
+void Heat::set_uniforms(std::string cmap_str, bool paused) {
     heatCS.bind();
+    heatCS.set_bool("paused", paused);
     heatCS.set_int("width", this->width);
     heatCS.set_int("height", this->height);
     heatCS.set_float("alpha", this->diffusion);

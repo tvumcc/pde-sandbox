@@ -17,9 +17,10 @@ public:
 
     void brush(int x_pos, int y_pos, int radius, float value);
     void resize(int width, int height);
+    void clear();
     void bind();
 
     virtual void solve() = 0;
     virtual void gui() = 0;
-    virtual void set_uniforms(std::string cmap_str) = 0;
+    virtual void set_uniforms(std::string cmap_str, bool paused) = 0;
 };

@@ -9,6 +9,8 @@ layout (std430, binding = 1) buffer ssbo2 {
     float v[];
 };
 
+uniform bool paused;
+
 uniform int width;
 uniform int height;
 uniform float a;
@@ -98,7 +100,7 @@ void main() {
     float dy = 5.0;
     float dt = 1.0;
 
-    euler(location, dx, dy, dt);
+    if (!paused) euler(location, dx, dy, dt);
     // RK4(location, dx, dy, dt);
 
     float luminosity = U(location.x, location.y);

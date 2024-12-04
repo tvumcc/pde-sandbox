@@ -6,6 +6,8 @@ layout (std430, binding = 0) buffer ssbo0 {
     float u[];
 };
 
+uniform bool paused;
+
 uniform int width;
 uniform int height;
 uniform float alpha;
@@ -47,7 +49,7 @@ void main() {
     float du_dt = alpha * (d2u_dx2 + d2u_dy2);
 
 
-    u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
+    if (!paused) u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
 
     float luminosity = U(location.x, location.y);
     imageStore(imgOutput, location, vec4(cmap(luminosity), 1.0));
