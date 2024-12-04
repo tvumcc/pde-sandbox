@@ -10,29 +10,16 @@ uniform int width;
 uniform int height;
 uniform float alpha;
 
-// Credit to https://www.shadertoy.com/view/Nd3fR2 for the MPL color maps
+// Color Map Poly 6 Coefficients
+uniform vec3 c0;
+uniform vec3 c1;
+uniform vec3 c2;
+uniform vec3 c3;
+uniform vec3 c4;
+uniform vec3 c5;
+uniform vec3 c6;
 
-// makes viridis colormap with polynimal 6
-vec3 viridis(float t) {
-    const vec3 c0 = vec3(0.274344,0.004462,0.331359);
-    const vec3 c1 = vec3(0.108915,1.397291,1.388110);
-    const vec3 c2 = vec3(-0.319631,0.243490,0.156419);
-    const vec3 c3 = vec3(-4.629188,-5.882803,-19.646115);
-    const vec3 c4 = vec3(6.181719,14.388598,57.442181);
-    const vec3 c5 = vec3(4.876952,-13.955112,-66.125783);
-    const vec3 c6 = vec3(-5.513165,4.709245,26.582180);
-    return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));
-}
-
-// makes Blues_r colormap with polynimal 6
-vec3 Blues_r(float t) {
-    const vec3 c0 = vec3(0.042660,0.186181,0.409512);
-    const vec3 c1 = vec3(-0.703712,1.094974,2.049478);
-    const vec3 c2 = vec3(7.995725,-0.686110,-4.998203);
-    const vec3 c3 = vec3(-24.421963,2.680736,7.532937);
-    const vec3 c4 = vec3(47.519089,-4.615112,-5.126531);
-    const vec3 c5 = vec3(-46.038418,2.606781,0.685560);
-    const vec3 c6 = vec3(16.586546,-0.279280,0.447047);
+vec3 cmap(float t) {
     return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));
 }
 
@@ -63,5 +50,5 @@ void main() {
     u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
 
     float luminosity = U(location.x, location.y);
-    imageStore(imgOutput, location, vec4(viridis(luminosity), 1.0));
+    imageStore(imgOutput, location, vec4(cmap(luminosity), 1.0));
 }

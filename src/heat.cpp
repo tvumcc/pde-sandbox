@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <imgui/imgui.h>
 
+#include "color_maps.hpp"
 #include "heat.hpp"
 
 #include <iostream>
@@ -15,11 +16,6 @@ Heat::Heat(int width, int height)
 }
 
 void Heat::solve() {
-    heatCS.bind();
-    heatCS.set_int("width", this->width);
-    heatCS.set_int("height", this->height);
-    heatCS.set_float("alpha", this->diffusion);
-
     glDispatchCompute(this->width, this->height, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 }
@@ -27,4 +23,12 @@ void Heat::solve() {
 void Heat::gui() {
     ImGui::Text("Diffusion");
     ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
+}
+
+void Heat::set_uniforms(std::string cmap_str) {
+    heatCS.bind();
+    heatCS.set_int("width", this->width);
+    heatCS.set_int("height", this->height);
+    heatCS.set_float("alpha", this->diffusion);
+    apply_cmap(heatCS, cmap_str);
 }

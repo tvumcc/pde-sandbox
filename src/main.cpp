@@ -11,6 +11,7 @@
 #include "grid.hpp"
 #include "heat.hpp"
 #include "gray_scott.hpp"
+#include "color_maps.hpp"
 
 #include <iostream>
 #include <vector>
@@ -23,7 +24,7 @@ unsigned int GUI_WIDTH = 300;
 unsigned int VAO, VBO, EBO;
 float r = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
 
-const char* cmaps[] = {"Viridis", "Blues_r"};
+const char* cmap_strs[] = {"Viridis", "Blues_r"};
 int current_cmap = 0;
 const char* sims[] = {"Heat Equation", "Gray Scott Reaction Diffusion"};
 int current_sim = 0;
@@ -75,7 +76,7 @@ int main() {
 			}
 			{
 				ImGui::Text("Color Map");
-				ImGui::Combo("##Color Map", &current_cmap, cmaps, IM_ARRAYSIZE(cmaps));
+				ImGui::Combo("##Color Map", &current_cmap, cmap_strs, IM_ARRAYSIZE(cmap_strs));
 			}
 			{
 				ImGui::Text("Brush Radius");
@@ -101,6 +102,7 @@ int main() {
 			pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
 		}
 
+		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap]);
 		pdes[current_sim]->solve();
 
 		shader.bind();

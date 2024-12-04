@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <string>
 
 class Grid {
 public:
@@ -20,4 +21,5 @@ public:
 
     virtual void solve() = 0;
     virtual void gui() = 0;
+    virtual void set_uniforms(std::string cmap_str) = 0;
 };
