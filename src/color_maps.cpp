@@ -26,6 +26,12 @@ std::unordered_map<std::string, std::vector<vec3>> cmaps = {
     }}
 };
 
+/**
+ * Sets the 6th order polynomial coefficients for a color map as uniforms to the specified shader 
+ * 
+ * @param shader The shader to send the uniforms to
+ * @param cmap_str The name of the color map to use
+ */
 void apply_cmap(AbstractShader shader, std::string cmap_str) {
     for (int i = 0; i < 7; i++) {
         shader.set_vec3("c" + std::to_string(i), cmaps[cmap_str][i]);

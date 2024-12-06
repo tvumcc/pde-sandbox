@@ -14,11 +14,17 @@ GrayScott::GrayScott(int width, int height)
     this->D = 2.0f;
 }
 
+/**
+ * Dispath the compute shader which solves the equation
+ */
 void GrayScott::solve() {
     glDispatchCompute(this->width, this->height, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
+/**
+ * Render the GUI for the Heat Equation Simulation using ImGui
+ */
 void GrayScott::gui() {
     ImGui::Text("a");
     ImGui::SliderFloat("##a", &a, 0.0, 1.0);
@@ -28,6 +34,9 @@ void GrayScott::gui() {
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
 }
 
+/**
+ * Send the uniforms for this simulation to the compute shader
+ */
 void GrayScott::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
     gray_scottCS.bind();
     gray_scottCS.set_bool("paused", paused);

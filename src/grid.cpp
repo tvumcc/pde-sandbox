@@ -5,7 +5,14 @@
 #include <algorithm>
 #include <iostream>
 
-// Constructs a new 2D grid with a given width and height and number of layers. Each layer corresponds to its own SSBO of floats
+/**
+ * Constructs a new 2D grid with a given width and height and number of layers. Each layer corresponds to its own SSBO of floats.
+ * 
+ * @param width The initial width of the image texture and each SSBO
+ * @param height The initial height of the image texture and each SSBO
+ * @param num_layers Number of SSBOs to intialize and keep track of
+ * @param initial_layer_value The initial value to reset all the values of each SSBO to when the grid is reset
+ */
 Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
     this->width = width;
     this->height = height;
@@ -21,7 +28,7 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width, this->height, 0, GL_RGBA, GL_FLOAT, 0);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    // Initialize the layer SSBOs
+    // Initialize the SSBO for each layer
     ssbos = std::vector<unsigned int>(num_layers);
     std::vector<float> initial_data = std::vector<float>(width * height, initial_layer_value);
     for (int i = 0; i < ssbos.size(); i++) {
@@ -32,7 +39,14 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
     }
 }
 
-// Draws a circle at (x_pos, y_pos) with a radius placing a floating value at each cell within a circle on the SSBO specified by index
+/**
+ * Draws a circle at (x_pos, y_pos) with a radius placing a floating value at each cell within a circle on the SSBO specified by index
+ * 
+ * @param x_pos The x position of the center of the circle
+ * @param y_pos The y position of the center of the circle 
+ * @param radius The radius of the circle
+ * @param value The value to set each grid cell to within the circle
+ */
 void Grid::brush(int x_pos, int y_pos, int radius, float value) {
     if (x_pos < 0 || x_pos >= width || y_pos < 0 || y_pos >= height) return;
 
@@ -58,8 +72,6 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
 
             int offset = y_offset * width + (x + x_pos); 
             if (offset >= 0 && offset < width * height && x*x + y*y <= radius * radius) {
-                // Cool Gradient:
-                // map[offset-begin] = value * (1.0 - (x*x + y*y) / (float)(radius * radius));
                 map[offset-begin] = value;
             }
         }
@@ -69,12 +81,21 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
+/**
+ * Resizes all SSBOs and the image texture to the specified dimensions
+ * 
+ * @param width Width to resize the grids to
+ * @param height Height to resize the grids to
+ */
 void Grid::resize(int width, int height) {
     this->width = width;
     this->height = height;
     clear();
 }
 
+/**
+ * Clears the image texture and all SSBOs
+ */
 void Grid::clear() {
     glBindTexture(GL_TEXTURE_2D, image);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
@@ -89,6 +110,9 @@ void Grid::clear() {
     }
 }
 
+/**
+ * Binds the image texture and all SSBOs to the current OpenGL state
+ */
 void Grid::bind() {
     glBindTexture(GL_TEXTURE_2D, this->image);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);

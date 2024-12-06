@@ -15,16 +15,25 @@ Heat::Heat(int width, int height)
     this->diffusion = 1.0;
 }
 
+/**
+ * Dispath the compute shader which solves the equation
+ */
 void Heat::solve() {
     glDispatchCompute(this->width, this->height, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
+/**
+ * Render the GUI for the Heat Equation Simulation using ImGui
+ */
 void Heat::gui() {
     ImGui::Text("Diffusion");
     ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
 }
 
+/**
+ * Send the uniforms for this simulation to the compute shader
+ */
 void Heat::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
     heatCS.bind();
     heatCS.set_bool("paused", paused);
