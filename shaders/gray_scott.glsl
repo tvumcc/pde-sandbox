@@ -70,31 +70,41 @@ float V(int x, int y) {
 
 
 float du_dt(int x, int y, float offset) {
-    float d2u_dx2 = ((U(x+1, y) + offset) + (U(x-1, y) + offset) - 2 * (U(x, y) + offset)) / (dx * dx);
-    float d2u_dy2 = ((U(x, y+1) + offset) + (U(x, y-1) + offset) - 2 * (U(x, y) + offset)) / (dx * dx);
+    float du_dx_0 = (U(x, y) - U(x-1, y)) / dx;
+    float du_dx_1 = (U(x+1, y) - U(x, y)) / dx;
+
+    float du_dy_0 = (U(x, y) - U(x, y-1)) / dx;
+    float du_dy_1 = (U(x, y+1) - U(x, y)) / dx;
 
     if (boundary_condition == 1) {
-        if (x == 0 || x == width-1) {
-            d2u_dx2 = 0.0;
-        } else if (y == 0 || y == height-1) {
-            d2u_dy2 = 0.0;
-        }
+        if (x == 0) du_dx_0 = 0.0;
+        if (x == width-1) du_dx_1 = 0.0;
+        if (y == 0) du_dy_0 = 0.0;
+        if (y == height-1) du_dy_1 = 0.0;
     }
+
+    float d2u_dx2 = (du_dx_1 - du_dx_0) / dx;
+    float d2u_dy2 = (du_dy_1 - du_dy_0) / dx;
 
     return (d2u_dx2 + d2u_dy2) + (pow(U(x, y) + offset, 2) * (V(x, y))) - (a + b) * (U(x, y) + offset);
 }
 
 float dv_dt(int x, int y, float offset) {
-    float d2v_dx2 = ((V(x+1, y) + offset) + (V(x-1, y) + offset) - 2 * (V(x, y) + offset)) / (dx * dx);
-    float d2v_dy2 = ((V(x, y+1) + offset) + (V(x, y-1) + offset) - 2 * (V(x, y) + offset)) / (dx * dx);
+    float dv_dx_0 = (V(x, y) - V(x-1, y)) / dx;
+    float dv_dx_1 = (V(x+1, y) - V(x, y)) / dx;
+
+    float dv_dy_0 = (V(x, y) - V(x, y-1)) / dx;
+    float dv_dy_1 = (V(x, y+1) - V(x, y)) / dx;
 
     if (boundary_condition == 1) {
-        if (x == 0 || x == width-1) {
-            d2v_dx2 = 0.0;
-        } else if (y == 0 || y == height-1) {
-            d2v_dy2 = 0.0;
-        }
+        if (x == 0) dv_dx_0 = 0.0;
+        if (x == width-1) dv_dx_1 = 0.0;
+        if (y == 0) dv_dy_0 = 0.0;
+        if (y == height-1) dv_dy_1 = 0.0;
     }
+
+    float d2v_dx2 = (dv_dx_1 - dv_dx_0) / dx;
+    float d2v_dy2 = (dv_dy_1 - dv_dy_0) / dx;
 
     return D * (d2v_dx2 + d2v_dy2) - (pow(U(x, y), 2) * (V(x, y) + offset)) + a * (1 - (V(x, y) + offset));
 }

@@ -59,21 +59,11 @@ float du_dt(int x, int y) {
     float du_dy_0 = (U(x, y) - U(x, y-1)) / dx;
     float du_dy_1 = (U(x, y+1) - U(x, y)) / dx;
 
-    // float d2u_dx2 = (U(x+1, y) + U(x-1, y) - 2 * U(x, y)) / (dx * dx);
-    // float d2u_dy2 = (U(x, y+1) + U(x, y-1) - 2 * U(x, y)) / (dx * dx);
-
     if (boundary_condition == 1) {
-        if ((x == 0 || x == width-1) && (y == 0 || y == height-1)) {
-            // doing nothing right now  
-        } else if (x == 0) {
-            du_dx_0 = 0.0;
-        } else if (x == width-1) {
-            du_dx_1 = 0.0;
-        } else if (y == 0) {
-            du_dy_0 = 0.0;
-        } else if (y == height-1) {
-            du_dy_1 = 0.0;
-        }
+        if (x == 0) du_dx_0 = 0.0;
+        if (x == width-1) du_dx_1 = 0.0;
+        if (y == 0) du_dy_0 = 0.0;
+        if (y == height-1) du_dy_1 = 0.0;
     }
 
     float d2u_dx2 = (du_dx_1 - du_dx_0) / dx;
