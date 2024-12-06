@@ -14,5 +14,5 @@ public:
 
     void solve() override;
     void gui() override;
-    void set_uniforms(std::string cmap_str, bool paused) override;
+    void set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) override;
 };

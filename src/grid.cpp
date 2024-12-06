@@ -57,7 +57,7 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
             if (x_offset < 0 || x_offset >= width) continue;
 
             int offset = y_offset * width + (x + x_pos); 
-            if (offset > 0 && offset < width * height && x*x + y*y <= radius * radius) {
+            if (offset >= 0 && offset < width * height && x*x + y*y <= radius * radius) {
                 // Cool Gradient:
                 // map[offset-begin] = value * (1.0 - (x*x + y*y) / (float)(radius * radius));
                 map[offset-begin] = value;

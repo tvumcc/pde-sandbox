@@ -28,13 +28,16 @@ void GrayScott::gui() {
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
 }
 
-void GrayScott::set_uniforms(std::string cmap_str, bool paused) {
+void GrayScott::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
     gray_scottCS.bind();
     gray_scottCS.set_bool("paused", paused);
     gray_scottCS.set_int("width", this->width);
     gray_scottCS.set_int("height", this->height);
+    gray_scottCS.set_int("boundary_condition", boundary_condition);
     gray_scottCS.set_float("a", this->a);    
     gray_scottCS.set_float("b", this->b);
     gray_scottCS.set_float("D", this->D);
+    gray_scottCS.set_float("dx", dx);
+    gray_scottCS.set_float("dt", dt);
     apply_cmap(gray_scottCS, cmap_str);
 }

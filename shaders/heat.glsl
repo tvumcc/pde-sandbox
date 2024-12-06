@@ -7,10 +7,14 @@ layout (std430, binding = 0) buffer ssbo0 {
 };
 
 uniform bool paused;
+uniform int boundary_condition;
 
 uniform int width;
 uniform int height;
 uniform float alpha;
+
+uniform float dx;
+uniform float dt;
 
 // Color Map Poly 6 Coefficients
 uniform vec3 c0;
@@ -29,26 +33,59 @@ int getPosition(int x, int y) {
     return (y * width) + x;
 }
 
+int fmod(int x, int y) {
+    return (x % y + y) % y;
+}
+
 float U(int x, int y) {
-    if (x < 0 || x >= width || y < 0 || y >= height) return 0.0; // Dirichlet Boundary Condition
+    if (x < 0 || x >= width || y < 0 || y >= height) {
+        if (boundary_condition == 2) { // Periodic Boundary Condition
+            return u[getPosition(fmod(x, width), fmod(y, height))];
+        } else {
+            return 0.0;
+        }
+    }
+
     int position = getPosition(x, y);
     return u[position];
+}
+
+// ((x2 - x1) / dx - (x1 - x0) / dx) / dx
+
+float du_dt(int x, int y) {
+    float du_dx_0 = (U(x, y) - U(x-1, y)) / dx;
+    float du_dx_1 = (U(x+1, y) - U(x, y)) / dx;
+
+    float du_dy_0 = (U(x, y) - U(x, y-1)) / dx;
+    float du_dy_1 = (U(x, y+1) - U(x, y)) / dx;
+
+    // float d2u_dx2 = (U(x+1, y) + U(x-1, y) - 2 * U(x, y)) / (dx * dx);
+    // float d2u_dy2 = (U(x, y+1) + U(x, y-1) - 2 * U(x, y)) / (dx * dx);
+
+    if (boundary_condition == 1) {
+        if ((x == 0 || x == width-1) && (y == 0 || y == height-1)) {
+            // doing nothing right now  
+        } else if (x == 0) {
+            du_dx_0 = 0.0;
+        } else if (x == width-1) {
+            du_dx_1 = 0.0;
+        } else if (y == 0) {
+            du_dy_0 = 0.0;
+        } else if (y == height-1) {
+            du_dy_1 = 0.0;
+        }
+    }
+
+    float d2u_dx2 = (du_dx_1 - du_dx_0) / dx;
+    float d2u_dy2 = (du_dy_1 - du_dy_0) / dx;
+
+    return alpha * (d2u_dx2 + d2u_dy2);
 }
 
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
-    float delta_x = 1.0;
-    float delta_y = 1.0;
-    float dt = 0.1;
-
-    // using dirchlet boundary condition
-
-    float d2u_dx2 = (U(location.x+1, location.y) + U(location.x-1, location.y) - 2 * U(location.x, location.y)) / (delta_x * delta_x);
-    float d2u_dy2 = (U(location.x, location.y+1) + U(location.x, location.y-1) - 2 * U(location.x, location.y)) / (delta_y * delta_y);
-    float du_dt = alpha * (d2u_dx2 + d2u_dy2);
-
-
+    float du_dt = du_dt(location.x, location.y);
     if (!paused) u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
 
     float luminosity = U(location.x, location.y);

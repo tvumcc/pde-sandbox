@@ -22,5 +22,5 @@ public:
 
     virtual void solve() = 0;
     virtual void gui() = 0;
-    virtual void set_uniforms(std::string cmap_str, bool paused) = 0;
+    virtual void set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) = 0;
 };

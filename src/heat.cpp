@@ -25,11 +25,14 @@ void Heat::gui() {
     ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
 }
 
-void Heat::set_uniforms(std::string cmap_str, bool paused) {
+void Heat::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
     heatCS.bind();
     heatCS.set_bool("paused", paused);
     heatCS.set_int("width", this->width);
     heatCS.set_int("height", this->height);
+    heatCS.set_int("boundary_condition", boundary_condition);
     heatCS.set_float("alpha", this->diffusion);
+    heatCS.set_float("dx", dx);
+    heatCS.set_float("dt", dt);
     apply_cmap(heatCS, cmap_str);
 }

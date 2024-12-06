@@ -28,10 +28,15 @@ const char* cmap_strs[] = {"Viridis", "Blues_r"};
 int current_cmap = 0;
 const char* sims[] = {"Heat Equation", "Gray Scott Reaction Diffusion"};
 int current_sim = 0;
+const char* boundary_conditions[] = {"Dirichlet", "Neumann", "Periodic"};
+int current_boundary_condition = 0;
 
 std::vector<std::unique_ptr<Grid>> pdes;
 
 int brush_radius = 10;
+int pixels_per_cell = 8;
+float space_step = 3.0;
+float time_step = 0.1;
 bool paused = false;
 
 void process_input(GLFWwindow* window);
@@ -80,8 +85,23 @@ int main() {
 				ImGui::Combo("##Color Map", &current_cmap, cmap_strs, IM_ARRAYSIZE(cmap_strs));
 			}
 			{
+				ImGui::Text("Pixels per Cell");
+				if (ImGui::SliderInt("##Pixels per Cell", &pixels_per_cell, 1, 20)) {
+					for (int i = 0; i < pdes.size(); i++)
+						pdes[i]->resize((WINDOW_WIDTH - GUI_WIDTH) / pixels_per_cell, WINDOW_HEIGHT / pixels_per_cell);
+				}
+				ImGui::Text("Space Step");
+				ImGui::SliderFloat("##Space Step", &space_step, 0.1, 5.0);
+				ImGui::Text("Time Step");
+				ImGui::SliderFloat("##Time Step", &time_step, 0.01, 0.5);
+			}
+			{
 				ImGui::Text("Brush Radius");
 				ImGui::SliderInt("##Brush Radius", &brush_radius, 1, 100);
+			}
+			{
+				ImGui::Text("Boundary Condition");
+				ImGui::Combo("##Boundary Condition", &current_boundary_condition, boundary_conditions, IM_ARRAYSIZE(boundary_conditions));
 			}
 			{
 				if (ImGui::Button(paused ? "Unpause" : "Pause")) paused = !paused;
@@ -108,7 +128,7 @@ int main() {
 			pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
 		}
 
-		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap], paused);
+		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap], current_boundary_condition, paused, space_step, time_step);
 		pdes[current_sim]->solve();
 
 		shader.bind();
@@ -143,7 +163,7 @@ void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
 
 	glViewport(0, 0, WINDOW_WIDTH - GUI_WIDTH, WINDOW_HEIGHT);
 	for (int i = 0; i < pdes.size(); i++)
-		pdes[i]->resize((WINDOW_WIDTH - GUI_WIDTH) / 8, WINDOW_HEIGHT / 8);
+		pdes[i]->resize((WINDOW_WIDTH - GUI_WIDTH) / pixels_per_cell, WINDOW_HEIGHT / pixels_per_cell);
 	// for (int i = 0; i < pdes.size(); i++)
 	// 	pdes[i]->resize(500, 400);
 }
