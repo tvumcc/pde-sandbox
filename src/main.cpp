@@ -11,6 +11,7 @@
 #include "grid.hpp"
 #include "heat.hpp"
 #include "gray_scott.hpp"
+#include "wave.hpp"
 #include "color_maps.hpp"
 
 #include <iostream>
@@ -26,7 +27,7 @@ float r = (float)WINDOW_WIDTH / WINDOW_HEIGHT;
 
 const char* cmap_strs[] = {"Viridis", "Blues_r"};
 int current_cmap = 0;
-const char* sims[] = {"Heat Equation", "Gray Scott Reaction Diffusion"};
+const char* sims[] = {"Heat Equation", "Gray Scott Reaction Diffusion", "Wave Equation"};
 int current_sim = 0;
 const char* boundary_conditions[] = {"Dirichlet", "Neumann", "Periodic"};
 int current_boundary_condition = 0;
@@ -38,6 +39,7 @@ int pixels_per_cell = 8;
 float space_step = 3.0;
 float time_step = 0.1;
 bool paused = false;
+bool pixels = false;
 
 void process_input(GLFWwindow* window);
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
@@ -48,6 +50,7 @@ int main() {
 
 	pdes.emplace_back(std::make_unique<Heat>(WINDOW_WIDTH, WINDOW_HEIGHT));
 	pdes.emplace_back(std::make_unique<GrayScott>(WINDOW_WIDTH, WINDOW_HEIGHT));
+	pdes.emplace_back(std::make_unique<Wave>(WINDOW_WIDTH, WINDOW_HEIGHT));
 	framebuffer_size_callback(window, WINDOW_WIDTH, WINDOW_HEIGHT);
 
 	Shader shader("shaders/default.vert", "shaders/default.frag");
@@ -83,6 +86,10 @@ int main() {
 			{
 				ImGui::Text("Color Map");
 				ImGui::Combo("##Color Map", &current_cmap, cmap_strs, IM_ARRAYSIZE(cmap_strs));
+				if (ImGui::Checkbox("Pixelated", &pixels)) {
+					for (int i = 0; i < pdes.size(); i++)
+						pdes[i]->set_pixelated(pixels);
+				}
 			}
 			{
 				ImGui::Text("Pixels per Cell");

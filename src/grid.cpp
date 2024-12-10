@@ -110,6 +110,14 @@ void Grid::clear() {
     }
 }
 
+void Grid::set_pixelated(bool pixels) {
+    glBindTexture(GL_TEXTURE_2D, image);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixels ? GL_NEAREST : GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+}
+
 /**
  * Binds the image texture and all SSBOs to the current OpenGL state
  */

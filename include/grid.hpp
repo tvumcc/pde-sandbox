@@ -18,6 +18,7 @@ public:
     void brush(int x_pos, int y_pos, int radius, float value);
     void resize(int width, int height);
     void clear();
+    void set_pixelated(bool pixels);
     void bind();
 
     virtual void solve() = 0;
