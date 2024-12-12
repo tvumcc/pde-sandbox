@@ -132,7 +132,8 @@ int main() {
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
-			pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
+			// pdes[current_sim]->brush((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
+			pdes[current_sim]->brushGaussian((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * pdes[current_sim]->width), (int)(y_pos / WINDOW_HEIGHT * pdes[current_sim]->height), brush_radius, 1.0);
 		}
 
 		pdes[current_sim]->set_uniforms(cmap_strs[current_cmap], current_boundary_condition, paused, space_step, time_step);
