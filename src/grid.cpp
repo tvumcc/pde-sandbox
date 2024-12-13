@@ -79,7 +79,7 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
         }
     }
 
-    // Make sure unmap the pointer because persistent mapping is not yet being used
+    // Unmap the pointer
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
@@ -103,7 +103,7 @@ void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
 
     // Get a pointer on the CPU of the SSBO
-    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT);
+    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
 
     // Two for loops which make a "rasterized" circle
     for (int y = -radius; y <= radius; y++) {
@@ -117,13 +117,13 @@ void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
             int offset = y_offset * width + (x + x_pos); 
             if (offset >= 0 && offset < width * height && x*x + y*y <= radius*radius) {
                 float dist = std::sqrt(x * x + y * y);
-                // map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
-                map[offset-begin] = (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2)));
+                map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
+                // map[offset-begin] = (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2)));
             }
         }
     }
 
-    // Make sure unmap the pointer because persistent mapping is not yet being used
+    // Unmap the pointer
     glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 

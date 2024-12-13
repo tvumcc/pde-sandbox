@@ -2,11 +2,16 @@
 #include "shader.hpp"
 #include "grid.hpp"
 
+#include <map>
+
 class GrayScott : public Grid {
 public:
     float a;
     float b;
     float D;
+    std::map<std::string, std::pair<float, float>> presets;
+    std::vector<const char*> preset_strs;
+    int curr_preset;
 
     ComputeShader gray_scottCS;
 

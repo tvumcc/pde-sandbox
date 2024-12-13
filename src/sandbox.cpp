@@ -48,6 +48,10 @@ void Sandbox::render_gui() {
     ImGui::SetNextWindowPos(ImVec2(main_viewport->WorkPos.x + main_viewport->WorkSize.x - gui_width, main_viewport->WorkPos.y));
     ImGui::SetNextWindowSize(ImVec2(gui_width, main_viewport->WorkSize.y));
     ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.1f, 0.1f, 0.1f, 1.0f));
+    ImGui::PushStyleColor(ImGuiCol_FrameBg, ImVec4(0.0f, 0.0f, 0.0f, 1.0f));
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 8.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_GrabRounding, 8.0f);
+    ImGui::PushStyleVar(ImGuiStyleVar_FrameBorderSize, 1.0f);
 
     ImGui::Begin("Settings Menu", 0, ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize);
 
@@ -88,10 +92,9 @@ void Sandbox::render_gui() {
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     grids[curr_sim]->gui();
     ImGui::PopItemWidth();
-    ImGui::PopStyleColor();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(3);
     ImGui::End();
-
-    // ImGui::ShowDemoWindow();
 }
 
 /**

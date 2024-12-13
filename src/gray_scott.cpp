@@ -9,6 +9,23 @@
 GrayScott::GrayScott(int width, int height) 
     : gray_scottCS("shaders/gray_scott.glsl"), Grid(width, height, 2, 0.0f)
 {
+    // See https://visualpde.com/nonlinear-physics/gray-scott/
+    presets = {
+        {"Labyrinthine", {0.037f, 0.06f}},
+        {"Spots", {0.03f, 0.062f}},
+        {"Pulsating Spots", {0.025f, 0.06f}},
+        {"Worms", {0.078f, 0.061f}},
+        {"Holes", {0.039f, 0.058f}},
+        {"Spatiotemporal chaos", {0.026f, 0.051f}},
+        {"Intermittent chaos/holes", {0.034f, 0.056f}},
+        {"Moving Spots", {0.014f, 0.054f}},
+        {"Small waves", {0.018f, 0.051f}},
+        {"Big waves", {0.014f, 0.045f}},
+        {"U-skate world", {0.062f, 0.061f}}
+    };
+
+    for (const auto& kp : presets) preset_strs.push_back(kp.first.c_str());
+
     reset_settings();
 }
 
@@ -24,12 +41,17 @@ void GrayScott::solve() {
  * Render the GUI for the Heat Equation Simulation using ImGui
  */
 void GrayScott::gui() {
-    ImGui::Text("a");
+    ImGui::Text("Feed Rate (a)");
     ImGui::SliderFloat("##a", &a, 0.0, 1.0);
-    ImGui::Text("b");
+    ImGui::Text("Kill Rate (b)");
     ImGui::SliderFloat("##b", &b, 0.0, 1.0);
-    ImGui::Text("D");
+    ImGui::Text("Diffusion (D)");
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
+    ImGui::Text("Presets");
+    if (ImGui::ListBox("##Preset", &curr_preset, preset_strs.data(), preset_strs.size())) {
+        a = presets[std::string(preset_strs[curr_preset])].first;
+        b = presets[std::string(preset_strs[curr_preset])].second;
+    }
 }
 
 /**
@@ -39,6 +61,7 @@ void GrayScott::reset_settings() {
     this->a =  0.037f;
     this->b = 0.06f;
     this->D = 2.0f;
+    curr_preset = 3;
 }
 
 /**
