@@ -37,6 +37,12 @@ void Heat::reset_settings() {
 
 /**
  * Send the uniforms for this simulation to the compute shader
+ * 
+ * @param cmap_str String representing a color map to use
+ * @param boundary_condition Simulation boundary condition (see Sandbox constructor)
+ * @param paused Is the simulation paused?
+ * @param dx Space Step
+ * @param dt Time Step
  */
 void Heat::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
     heatCS.bind();

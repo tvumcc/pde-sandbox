@@ -94,16 +94,16 @@ void Grid::brush(int x_pos, int y_pos, int radius, float value) {
 void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
     if (x_pos < 0 || x_pos >= width || y_pos < 0 || y_pos >= height) return;
 
-    // Bind the layer's corresponding SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
-
     // Indices into the mapped buffer range. These must be mapped from 2D into 1D because SSBOs are solely 1D
     int begin = std::max(y_pos - radius, 0) * width;
     int end = std::min(y_pos + radius, height - 1) * width;
     int length = end-begin + 1;
 
+    // Bind the layer's corresponding SSBO
+    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
+
     // Get a pointer on the CPU of the SSBO
-    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
+    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT);
 
     // Two for loops which make a "rasterized" circle
     for (int y = -radius; y <= radius; y++) {
@@ -117,7 +117,8 @@ void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
             int offset = y_offset * width + (x + x_pos); 
             if (offset >= 0 && offset < width * height && x*x + y*y <= radius*radius) {
                 float dist = std::sqrt(x * x + y * y);
-                map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
+                // map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
+                map[offset-begin] = (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2)));
             }
         }
     }
@@ -155,6 +156,12 @@ void Grid::clear() {
     }
 }
 
+/**
+ * Changes the magnification filter of the image texture.
+ * In effect, GL_NEAREST will make the image look pixelated while GL_LINEAR will smoothen it out.
+ * 
+ * @param pixels If true, image becomes pixelated and smooth otherwise
+ */
 void Grid::set_pixelated(bool pixels) {
     glBindTexture(GL_TEXTURE_2D, image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

@@ -15,8 +15,8 @@
 #include <memory>
 
 GLFWwindow* window;
-unsigned int WINDOW_WIDTH = 1000;
-unsigned int WINDOW_HEIGHT = 800;
+unsigned int WINDOW_WIDTH = 1200;
+unsigned int WINDOW_HEIGHT = 1000;
 unsigned int GUI_WIDTH = 320;
 unsigned int VAO, VBO, EBO;
 
@@ -51,7 +51,7 @@ int main() {
 		if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS) {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
-			sandbox.grids[sandbox.curr_sim]->brushGaussian((int)(x_pos / (WINDOW_WIDTH - GUI_WIDTH) * sandbox.grids[sandbox.curr_sim]->width), (int)(y_pos / WINDOW_HEIGHT * sandbox.grids[sandbox.curr_sim]->height), sandbox.brush_radius, 1.0);
+			sandbox.brush(x_pos, y_pos);
 		}
 
 		sandbox.advance_step();
@@ -97,7 +97,7 @@ void setup() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Partial Differential Equations Simulation", NULL, NULL);
+	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "PDE-2D", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	GLFWimage icons[2];
 	icons[0].pixels = stbi_load("assets/laplacian.png", &icons[0].width, &icons[0].height, 0, 4);
