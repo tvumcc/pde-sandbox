@@ -5,7 +5,7 @@
 using namespace glm;
 
 // Credit to https://www.shadertoy.com/view/Nd3fR2 for the MPL color maps
-std::unordered_map<std::string, std::vector<vec3>> cmaps = {
+std::map<std::string, std::vector<vec3>> cmaps = {
     {"Viridis", {
         vec3(0.274344,0.004462,0.331359),
         vec3(0.108915,1.397291,1.388110),
@@ -34,6 +34,6 @@ std::unordered_map<std::string, std::vector<vec3>> cmaps = {
  */
 void apply_cmap(AbstractShader shader, std::string cmap_str) {
     for (int i = 0; i < 7; i++) {
-        shader.set_vec3("c" + std::to_string(i), cmaps[cmap_str][i]);
+        shader.set_vec3("c" + std::to_string(i), cmaps.at(cmap_str)[i]);
     }
 }

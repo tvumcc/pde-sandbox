@@ -9,14 +9,11 @@
 Wave::Wave(int width, int height) 
     : waveCS("shaders/wave.glsl"), Grid(width, height, 2, 0.0f)
 {
-    this->dt = 0.05;
-    this->dx = 1.0;
-    this->dy = 1.0;
-    this->diffusion = 1.0;
+    reset_settings();
 }
 
 /**
- * Dispath the compute shader which solves the equation
+ * Dispatch the compute shader which solves the equation
  */
 void Wave::solve() {
     glDispatchCompute(this->width, this->height, 1);
@@ -24,12 +21,14 @@ void Wave::solve() {
 }
 
 /**
- * Render the GUI for the Heat Equation Simulation using ImGui
+ * Render the GUI for the Wave Equation Simulation using ImGui
  */
-void Wave::gui() {
-    // ImGui::Text("Diffusion");
-    // ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
-}
+void Wave::gui() {}
+
+/**
+ * Reset all simulation specific settings to default
+ */
+void Wave::reset_settings() {}
 
 /**
  * Send the uniforms for this simulation to the compute shader
@@ -40,7 +39,6 @@ void Wave::set_uniforms(std::string cmap_str, int boundary_condition, bool pause
     waveCS.set_int("width", this->width);
     waveCS.set_int("height", this->height);
     waveCS.set_int("boundary_condition", boundary_condition);
-    waveCS.set_float("alpha", this->diffusion);
     waveCS.set_float("dx", dx);
     waveCS.set_float("dt", dt);
     apply_cmap(waveCS, cmap_str);

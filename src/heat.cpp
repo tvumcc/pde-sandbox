@@ -9,14 +9,11 @@
 Heat::Heat(int width, int height) 
     : heatCS("shaders/heat.glsl"), Grid(width, height, 1, 0.0f)
 {
-    this->dt = 0.05;
-    this->dx = 1.0;
-    this->dy = 1.0;
-    this->diffusion = 1.0;
+    reset_settings();
 }
 
 /**
- * Dispath the compute shader which solves the equation
+ * Dispatch the compute shader which solves the equation
  */
 void Heat::solve() {
     glDispatchCompute(this->width, this->height, 1);
@@ -29,6 +26,13 @@ void Heat::solve() {
 void Heat::gui() {
     ImGui::Text("Diffusion");
     ImGui::SliderFloat("##Diffusion", &diffusion, 0.01, 3.0);
+}
+
+/**
+ * Reset all simulation specific settings to default
+ */
+void Heat::reset_settings() {
+    this->diffusion = 1.0;
 }
 
 /**

@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iostream>
 #include <cmath>
+#include <algorithm>
 
 /**
  * Constructs a new 2D grid with a given width and height and number of layers. Each layer corresponds to its own SSBO of floats.
@@ -102,7 +103,7 @@ void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
     int length = end-begin + 1;
 
     // Get a pointer on the CPU of the SSBO
-    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT);
+    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
 
     // Two for loops which make a "rasterized" circle
     for (int y = -radius; y <= radius; y++) {
@@ -116,7 +117,7 @@ void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
             int offset = y_offset * width + (x + x_pos); 
             if (offset >= 0 && offset < width * height && x*x + y*y <= radius*radius) {
                 float dist = std::sqrt(x * x + y * y);
-                map[offset-begin] = 2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2));
+                map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
             }
         }
     }

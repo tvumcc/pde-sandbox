@@ -15,9 +15,6 @@ uniform int boundary_condition;
 uniform float dx;
 uniform float dt;
 
-// Wave Equation specific settings
-uniform float alpha;
-
 // Color Map Poly 6 Coefficients
 uniform vec3 c0;
 uniform vec3 c1;
@@ -88,8 +85,7 @@ float du_dt(int x, int y) {
     float d2u_dx2 = (du_dx_1 - du_dx_0) / dx;
     float d2u_dy2 = (du_dy_1 - du_dy_0) / dx;
 
-    float c = dt / dx;
-
+    float c = dt / dx; // Follow CFL
     return pow(c, 2) * (d2u_dx2 + d2u_dy2);
 }
 

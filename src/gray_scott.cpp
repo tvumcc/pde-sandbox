@@ -9,9 +9,7 @@
 GrayScott::GrayScott(int width, int height) 
     : gray_scottCS("shaders/gray_scott.glsl"), Grid(width, height, 2, 0.0f)
 {
-    this->a =  0.037f;
-    this->b = 0.06f;
-    this->D = 2.0f;
+    reset_settings();
 }
 
 /**
@@ -32,6 +30,15 @@ void GrayScott::gui() {
     ImGui::SliderFloat("##b", &b, 0.0, 1.0);
     ImGui::Text("D");
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
+}
+
+/**
+ * Reset all simulation specific settings to default
+ */
+void GrayScott::reset_settings() {
+    this->a =  0.037f;
+    this->b = 0.06f;
+    this->D = 2.0f;
 }
 
 /**
