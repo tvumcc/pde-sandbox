@@ -6,6 +6,7 @@
 #include "heat.hpp"
 #include "gray_scott.hpp"
 #include "wave.hpp"
+#include "navier_stokes.hpp"
 #include "color_maps.hpp"
 
 Sandbox::Sandbox(int width, int height) {
@@ -13,6 +14,7 @@ Sandbox::Sandbox(int width, int height) {
 	grids.emplace_back(std::make_shared<Heat>(width, height));
 	grids.emplace_back(std::make_shared<GrayScott>(width, height));
 	grids.emplace_back(std::make_shared<Wave>(width, height));
+	grids.emplace_back(std::make_shared<NavierStokes>(width, height));
 
     window_width = width;
     window_height = height;
@@ -28,7 +30,7 @@ Sandbox::Sandbox(int width, int height) {
     curr_brush = 0;
 
     for (const auto& kp : cmaps) cmap_strs.push_back(kp.first.c_str());
-    sim_strs.resize(3); sim_strs = {"Heat Equation", "Gray Scott Reaction Diffusion", "Wave Equation"};
+    sim_strs.resize(3); sim_strs = {"Heat Equation", "Gray-Scott Reaction Diffusion", "Wave Equation", "Navier-Stokes Fluid Flow"};
     boundary_condition_strs.resize(3); boundary_condition_strs = {"Dirichlet", "Neumann", "Periodic"};
     brush_strs.resize(2); brush_strs = {"Circle", "Gaussian"};
 
@@ -135,7 +137,7 @@ void Sandbox::bind_current_grid() {
 void Sandbox::brush(double x_pos, double y_pos) {
     switch ((Brush)curr_brush) {
         case Brush::Circle:
-			grids[curr_sim]->brush((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height), brush_radius, 1.0);
+			grids[curr_sim]->brush((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height), brush_radius, 1.1f);
             break;
         case Brush::Gaussian:
 			grids[curr_sim]->brushGaussian((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height), brush_radius, 1.0);
@@ -148,8 +150,8 @@ void Sandbox::brush(double x_pos, double y_pos) {
  */
 void Sandbox::reset_settings() {
     brush_radius = 10;
-    space_step = 3.0;
-    time_step = 0.1;
+    space_step = 0.5;
+    time_step = 0.01;
 
     grids[curr_sim]->reset_settings();
 }

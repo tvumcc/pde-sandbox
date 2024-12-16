@@ -102,5 +102,5 @@ void main() {
     if (!paused) euler(location);
 
     float luminosity = U(location.x, location.y);
-    imageStore(imgOutput, location, vec4(cmap(luminosity), 1.0));
+    imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(luminosity))), 1.0));
 }

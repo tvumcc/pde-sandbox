@@ -31,8 +31,8 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     // Initialize the SSBO for each layer
-    ssbos = std::vector<unsigned int>(num_layers);
     std::vector<float> initial_data = std::vector<float>(width * height, initial_layer_value);
+    ssbos = std::vector<unsigned int>(num_layers);
     for (int i = 0; i < ssbos.size(); i++) {
         glGenBuffers(1, &ssbos[i]);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
@@ -147,8 +147,14 @@ void Grid::clear() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
+
     for (int i = 0; i < ssbos.size(); i++) {
+        std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
+        if (i == 3) {
+            for (int j = 0; j < width * height; j++) {
+                initial_data[j] = j / (float)(width * height);
+            }
+        }
         glGenBuffers(1, &ssbos[i]);
         glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
         glBufferData(GL_SHADER_STORAGE_BUFFER, width * height * sizeof(float), initial_data.data(), GL_DYNAMIC_DRAW);
