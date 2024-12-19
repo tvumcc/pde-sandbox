@@ -16,8 +16,8 @@ Heat::Heat(int width, int height)
  * Dispatch the compute shader which solves the equation
  */
 void Heat::solve() {
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
     glDispatchCompute(this->width, this->height, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
 }
 
 /**
@@ -33,6 +33,8 @@ void Heat::gui() {
  */
 void Heat::reset_settings() {
     this->diffusion = 1.0;
+    this->brush_radius = 10;
+    this->brush_type = 0;
 }
 
 /**
@@ -53,5 +55,13 @@ void Heat::set_uniforms(std::string cmap_str, int boundary_condition, bool pause
     heatCS.set_float("alpha", this->diffusion);
     heatCS.set_float("dx", dx);
     heatCS.set_float("dt", dt);
+
+    heatCS.set_int("brush_layer", this->brush_layer);
+    heatCS.set_int("brush_enabled", this->brush_enabled);
+    heatCS.set_int("brush_type", this->brush_type);
+    heatCS.set_float("brush_value", this->brush_value);
+    heatCS.set_int("x_pos", this->x_pos);
+    heatCS.set_int("y_pos", this->y_pos);
+    heatCS.set_int("brush_radius", this->brush_radius);
     apply_cmap(heatCS, cmap_str);
 }

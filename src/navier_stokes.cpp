@@ -9,7 +9,7 @@
 NavierStokes::NavierStokes(int width, int height) 
     : navier_stokesCS("shaders/navier_stokes.glsl"), Grid(width, height, 4, 0.0f)
 {
-    brush_layer = 1;
+    brush_layer = 0;
     reset_settings();
 }
 
@@ -18,7 +18,7 @@ NavierStokes::NavierStokes(int width, int height)
  */
 void NavierStokes::solve() {
     glDispatchCompute(this->width, this->height, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 /**

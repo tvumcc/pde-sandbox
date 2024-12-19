@@ -18,7 +18,14 @@
 Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
     this->width = width;
     this->height = height;
+
     this->brush_layer = 0;
+    this->brush_enabled = 0;
+    this->brush_type = 0;
+    this->brush_value = 1.0f;
+    this->x_pos = 0;
+    this->y_pos = 0;
+    this->brush_radius = 10;
 
     // Initialize the output image texture
 	glGenTextures(1, &image);
@@ -30,101 +37,15 @@ Grid::Grid(int width, int height, int num_layers, float initial_layer_value) {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, this->width, this->height, 0, GL_RGBA, GL_FLOAT, 0);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    // Initialize the SSBO for each layer
+    // Initialize the texture for each layer
     std::vector<float> initial_data = std::vector<float>(width * height, initial_layer_value);
-    ssbos = std::vector<unsigned int>(num_layers);
-    for (int i = 0; i < ssbos.size(); i++) {
-        glGenBuffers(1, &ssbos[i]);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, width * height * sizeof(float), initial_data.data(), GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
+    layers = std::vector<unsigned int>(num_layers);
+    for (int i = 0; i < layers.size(); i++) {
+        glGenTextures(1, &layers[i]);
+        glBindTexture(GL_TEXTURE_2D, layers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, this->width, this->height, 0, GL_RED, GL_FLOAT, 0);
+        glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
-}
-
-/**
- * Draws a circle at (x_pos, y_pos) with a radius placing a floating value at each cell within a circle on the SSBO specified by brush_layer
- * 
- * @param x_pos The x position of the center of the circle
- * @param y_pos The y position of the center of the circle 
- * @param radius The radius of the circle
- * @param value The value to set each grid cell to within the circle
- */
-void Grid::brush(int x_pos, int y_pos, int radius, float value) {
-    if (x_pos < 0 || x_pos >= width || y_pos < 0 || y_pos >= height) return;
-
-    // Bind the layer's corresponding SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
-
-    // Indices into the mapped buffer range. These must be mapped from 2D into 1D because SSBOs are solely 1D
-    int begin = std::max(y_pos - radius, 0) * width;
-    int end = std::min(y_pos + radius, height - 1) * width;
-    int length = end-begin + 1;
-
-    // Get a pointer on the CPU of the SSBO
-    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT);
-
-    // Two for loops which make a "rasterized" circle
-    for (int y = -radius; y <= radius; y++) {
-        int y_offset = (y + y_pos);
-        if (y_offset < 0 || y >= height) continue;
-
-        for (int x = -radius; x <= radius; x++) {
-            int x_offset = (x + x_pos);
-            if (x_offset < 0 || x_offset >= width) continue;
-
-            int offset = y_offset * width + (x + x_pos); 
-            if (offset >= 0 && offset < width * height && x*x + y*y <= radius * radius) {
-                map[offset-begin] = value;
-            }
-        }
-    }
-
-    // Unmap the pointer
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
-}
-
-/**
- * Draws a gaussian pulse at (x_pos, y_pos) with a radius on the SSBO specified by brush_layer
- * 
- * @param x_pos The x position of the center of the circle
- * @param y_pos The y position of the center of the circle 
- * @param radius The radius of the circle
- * @param value The peak value of the Gaussian
- */
-void Grid::brushGaussian(int x_pos, int y_pos, int radius, float value) {
-    if (x_pos < 0 || x_pos >= width || y_pos < 0 || y_pos >= height) return;
-
-    // Indices into the mapped buffer range. These must be mapped from 2D into 1D because SSBOs are solely 1D
-    int begin = std::max(y_pos - radius, 0) * width;
-    int end = std::min(y_pos + radius, height - 1) * width;
-    int length = end-begin + 1;
-
-    // Bind the layer's corresponding SSBO
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[brush_layer]);
-
-    // Get a pointer on the CPU of the SSBO
-    float* map = (float*)glMapBufferRange(GL_SHADER_STORAGE_BUFFER, begin * sizeof(float), length * sizeof(float), GL_MAP_WRITE_BIT | GL_MAP_READ_BIT);
-
-    // Two for loops which make a "rasterized" circle
-    for (int y = -radius; y <= radius; y++) {
-        int y_offset = (y + y_pos);
-        if (y_offset < 0 || y >= height) continue;
-
-        for (int x = -radius; x <= radius; x++) {
-            int x_offset = (x + x_pos);
-            if (x_offset < 0 || x_offset >= width) continue;
-
-            int offset = y_offset * width + (x + x_pos); 
-            if (offset >= 0 && offset < width * height && x*x + y*y <= radius*radius) {
-                float dist = std::sqrt(x * x + y * y);
-                map[offset-begin] = std::max(map[offset-begin], (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2))));
-                // map[offset-begin] = (float)(2.5 * value * 1.0 / (std::sqrt(2 * 3.141592f)) * exp(-0.5 * (1.0 / (2.0 * radius)) * std::pow(dist, 2)));
-            }
-        }
-    }
-
-    // Unmap the pointer
-    glUnmapBuffer(GL_SHADER_STORAGE_BUFFER);
 }
 
 /**
@@ -147,18 +68,18 @@ void Grid::clear() {
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-
-    for (int i = 0; i < ssbos.size(); i++) {
+    for (int i = 0; i < layers.size(); i++) {
         std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
-        if (i == 3) {
+        if (i == 3) { // temporary initialization for navier-stokes
             for (int j = 0; j < width * height; j++) {
                 initial_data[j] = j / (float)(width * height);
             }
         }
-        glGenBuffers(1, &ssbos[i]);
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
-        glBufferData(GL_SHADER_STORAGE_BUFFER, width * height * sizeof(float), initial_data.data(), GL_DYNAMIC_DRAW);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
+
+        glGenTextures(1, &layers[i]);
+        glBindTexture(GL_TEXTURE_2D, layers[i]);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, this->width, this->height, 0, GL_RED, GL_FLOAT, initial_data.data());
+        glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
 }
 
@@ -183,8 +104,8 @@ void Grid::bind() {
     glBindTexture(GL_TEXTURE_2D, this->image);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    for (int i = 0; i < ssbos.size(); i++) {
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, ssbos[i]);
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, i, ssbos[i]);
+    for (int i = 0; i < layers.size(); i++) {
+        glBindTexture(GL_TEXTURE_2D, layers[i]);
+        glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
 }

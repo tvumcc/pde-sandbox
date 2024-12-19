@@ -6,17 +6,22 @@ class Grid {
 public:
     int width;
     int height;
-    int brush_layer;
     int unit_idx;
+
+    // Brush
+    int brush_layer;
+    int brush_enabled;
+    int brush_type;
+    float brush_value;
+    int brush_radius;
+    int x_pos, y_pos;
 
     // Buffer IDs
     unsigned int image;
-    std::vector<unsigned int> ssbos;
+    std::vector<unsigned int> layers;
 
     Grid(int width = 0, int height = 0, int num_layers = 0, float initial_layer_value = 0.0);
 
-    void brush(int x_pos, int y_pos, int radius, float value);
-    void brushGaussian(int x_pos, int y_pos, int radius, float value);
     void resize(int width, int height);
     void clear();
     void set_pixelated(bool pixels);

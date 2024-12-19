@@ -2,7 +2,7 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout (rgba32f, binding = 0) uniform image2D imgOutput;
-layout (std430, binding = 0) buffer ssbo0 {float u[];};
+layout (r32f, binding = 1) uniform image2D u;
 
 // Dimensions of the grids
 uniform int width;
@@ -14,26 +14,24 @@ uniform int boundary_condition;
 uniform float dx;
 uniform float dt;
 
+// Brush settings
+uniform int brush_layer;
+uniform int brush_enabled;
+uniform int brush_type;
+uniform float brush_value;
+uniform int x_pos;
+uniform int y_pos;
+uniform int brush_radius;
+
 // Heat Equation specific settings
 uniform float alpha;
 
 // Color Map Poly 6 Coefficients
-uniform vec3 c0;
-uniform vec3 c1;
-uniform vec3 c2;
-uniform vec3 c3;
-uniform vec3 c4;
-uniform vec3 c5;
-uniform vec3 c6;
+uniform vec3 c0, c1, c2, c3, c4, c5, c6;
 
 // 6th Order Polynomial Approximation for Matplotlib Color Maps
 vec3 cmap(float t) {
     return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));
-}
-
-// Translate x and y coordinates into a 1D index into an SSBO
-int getPosition(int x, int y) {
-    return (y * width) + x;
 }
 
 // Performs the remainder operation
@@ -45,14 +43,13 @@ int fmod(int x, int y) {
 float U(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
         if (boundary_condition == 2) { // Periodic Boundary Condition
-            return u[getPosition(fmod(x, width), fmod(y, height))];
+            return imageLoad(u, ivec2(fmod(x, width), fmod(y, height))).r;
         } else { // Dirichlet Boundary Condition
             return 0.0;
         }
     }
 
-    int position = getPosition(x, y);
-    return u[position];
+    return imageLoad(u, ivec2(x, y)).r;
 }
 
 // Computes the temporal derivative at a coordinate points in the grid
@@ -79,14 +76,18 @@ float du_dt(int x, int y) {
 // Use Euler's Method to make one step forward in time
 void euler(ivec2 location) {
     float du_dt = du_dt(location.x, location.y);
-    u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
+    imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt));
 }
 
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
-    if (!paused) euler(location);
+    int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - x_pos, 2) + pow(location.y - y_pos, 2))));
+    float du_dt = du_dt(location.x, location.y);
+    int pause = paused ? 0 : 1;
 
-    float luminosity = U(location.x, location.y);
-    imageStore(imgOutput, location, vec4(cmap(luminosity), 1.0));
+    // Avoid branching by using some clever mathematical manipulation
+    float luminosity = (1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value);
+    imageStore(u, location, vec4(luminosity));
+    imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(luminosity))), 1.0));
 }

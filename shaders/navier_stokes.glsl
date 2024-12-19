@@ -89,10 +89,12 @@ float P(int x, int y) {
 // Accesses the value of the S grid at a coordinate while respecting value-based boundary conditions
 float S(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
-        if (boundary_condition == 2) { // Periodic Boundary Condition
-            return s[getPosition(fmod(x, width), fmod(y, height))];
-        } else { // Dirichlet Boundary Condition
+        if (x < 0) {
+            return 1.0;
+        } else if (x >= width) {
             return 0.0;
+        } else {
+            return s[getPosition(fmod(x, width), fmod(y, height))];
         }
     }
 
@@ -171,7 +173,7 @@ float dp_dt(int x, int y) {
     float du_dx = (U(x+1, y) - U(x, y)) / dx;
     float dv_dy = (V(x, y+1) - V(x, y)) / dx;
 
-    if (boundary_condition == 1) { // Neumann Boundary Condition
+    if (true) { // Neumann Boundary Condition
         if (x == 0) {
             dp_dx_0 = 0.0;
             du_dx = 0.0;
@@ -205,7 +207,7 @@ float ds_dt(int x, int y) {
     float ds_dy_0 = (S(x, y) - S(x, y-1)) / dx;
     float ds_dy_1 = (S(x, y+1) - S(x, y)) / dx;
 
-    if (boundary_condition == 1) { // Neumann Boundary Condition
+    if (false) { // Neumann Boundary Condition
         if (x == 0) ds_dx_0 = 0.0;
         if (x == width-1) ds_dx_1 = 0.0;
         if (y == 0) ds_dy_0 = 0.0;

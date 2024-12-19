@@ -34,7 +34,7 @@ GrayScott::GrayScott(int width, int height)
  */
 void GrayScott::solve() {
     glDispatchCompute(this->width, this->height, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 /**
@@ -78,5 +78,13 @@ void GrayScott::set_uniforms(std::string cmap_str, int boundary_condition, bool 
     gray_scottCS.set_float("D", this->D);
     gray_scottCS.set_float("dx", dx);
     gray_scottCS.set_float("dt", dt);
+
+    gray_scottCS.set_int("brush_layer", this->brush_layer);
+    gray_scottCS.set_int("brush_enabled", this->brush_enabled);
+    gray_scottCS.set_int("brush_type", this->brush_type);
+    gray_scottCS.set_float("brush_value", this->brush_value);
+    gray_scottCS.set_int("x_pos", this->x_pos);
+    gray_scottCS.set_int("y_pos", this->y_pos);
+    gray_scottCS.set_int("brush_radius", this->brush_radius);
     apply_cmap(gray_scottCS, cmap_str);
 }

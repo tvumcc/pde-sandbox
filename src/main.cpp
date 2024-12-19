@@ -52,11 +52,13 @@ int main() {
 			double x_pos, y_pos;
 			glfwGetCursorPos(window, &x_pos, &y_pos);
 			sandbox.brush(x_pos, y_pos);
+		} else {
+			sandbox.grids[sandbox.curr_sim]->brush_enabled = false;
 		}
 
 		sandbox.advance_step();
 
-
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		shader.bind();
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, sandbox.grids[sandbox.curr_sim]->image);

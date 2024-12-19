@@ -11,7 +11,6 @@ public:
     int gui_width;
 
     int resolution;
-    int brush_radius;
     float space_step;
     float time_step;
     bool pixels;
@@ -25,7 +24,6 @@ public:
     int curr_cmap;
     int curr_sim;
     int curr_boundary_condition;
-    int curr_brush;
 
     std::vector<std::shared_ptr<Grid>> grids;
     std::shared_ptr<Grid> grid;

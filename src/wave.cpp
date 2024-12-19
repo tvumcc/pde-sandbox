@@ -17,7 +17,7 @@ Wave::Wave(int width, int height)
  */
 void Wave::solve() {
     glDispatchCompute(this->width, this->height, 1);
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_SHADER_STORAGE_BARRIER_BIT);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 /**

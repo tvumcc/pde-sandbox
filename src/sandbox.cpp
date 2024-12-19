@@ -9,6 +9,8 @@
 #include "navier_stokes.hpp"
 #include "color_maps.hpp"
 
+#include <iostream>
+
 Sandbox::Sandbox(int width, int height) {
     // Initialize grids
 	grids.emplace_back(std::make_shared<Heat>(width, height));
@@ -27,7 +29,6 @@ Sandbox::Sandbox(int width, int height) {
     curr_cmap = 1;
     curr_sim = 0;
     curr_boundary_condition = 0;
-    curr_brush = 0;
 
     for (const auto& kp : cmaps) cmap_strs.push_back(kp.first.c_str());
     sim_strs.resize(3); sim_strs = {"Heat Equation", "Gray-Scott Reaction Diffusion", "Wave Equation", "Navier-Stokes Fluid Flow"};
@@ -77,8 +78,8 @@ void Sandbox::render_gui() {
 
     // Brush Section
     ImGui::SeparatorText("Brush");
-    ImGui::Text("Brush Radius");       ImGui::SliderInt("##Brush Radius", &brush_radius, 1, 100);
-    ImGui::Text("Brush Type"); ImGui::Combo("##Brush Type", &curr_brush, brush_strs.data(), brush_strs.size());
+    ImGui::Text("Brush Radius");       ImGui::SliderInt("##Brush Radius", &(grids[curr_sim]->brush_radius), 1, 100);
+    ImGui::Text("Brush Type"); ImGui::Combo("##Brush Type", &(grids[curr_sim]->brush_type), brush_strs.data(), brush_strs.size());
 
     // Visual Section
     ImGui::SeparatorText("Visual");
@@ -135,21 +136,15 @@ void Sandbox::bind_current_grid() {
  * @param y_pos Y coordinate in window space as taken from the mouse
  */
 void Sandbox::brush(double x_pos, double y_pos) {
-    switch ((Brush)curr_brush) {
-        case Brush::Circle:
-			grids[curr_sim]->brush((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height), brush_radius, 1.1f);
-            break;
-        case Brush::Gaussian:
-			grids[curr_sim]->brushGaussian((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height), brush_radius, 1.0);
-            break;
-    }
+    grids[curr_sim]->x_pos = (int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width);
+    grids[curr_sim]->y_pos = (int)(y_pos / window_height * grids[curr_sim]->height);
+    grids[curr_sim]->brush_enabled = grids[curr_sim]->x_pos >= 0 && grids[curr_sim]->x_pos < grids[curr_sim]->width && grids[curr_sim]->y_pos >= 0 && grids[curr_sim]->y_pos < grids[curr_sim]->height;
 }
 
 /**
  * Resets simulation and PDE settings to their defaults
  */
 void Sandbox::reset_settings() {
-    brush_radius = 10;
     space_step = 0.5;
     time_step = 0.01;
 
