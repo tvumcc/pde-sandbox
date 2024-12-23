@@ -228,10 +228,19 @@ void main() {
     float dp_dt = dp_dt(location.x, location.y);
     float ds_dt = ds_dt(location.x, location.y);
 
-    imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value)));
-    imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
-    imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
-    imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+
+    if (brush_layer == 0) {
+        imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value)));
+        imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
+        imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+        imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+    } else if (brush_layer == 1) {
+        imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt * pause));
+        imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
+        imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+        imageStore(s, location, vec4((1 - brush_enabled * ratio) * (S(location.x, location.y) + ds_dt * dt * pause) + (brush_enabled * ratio * brush_value)));
+    }
+
 
     if (visible_layer == 0) {
         imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, U(location.x, location.y)))), 1.0));

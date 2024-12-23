@@ -13,6 +13,8 @@ NavierStokes::NavierStokes(int width, int height)
 
     visible_layer_strs.resize(4);
     visible_layer_strs = {"Velocity (x)", "Velocity (y)", "Velocity (Magnitude)", "Dye"};
+    brush_layer_strs.resize(2);
+    brush_layer_strs = {"Velocity", "Dye"};
 
     reset_settings();
 }
@@ -33,6 +35,8 @@ void NavierStokes::gui() {
     ImGui::SliderFloat("##Viscosity", &viscosity, 0.0, 1.0);
     ImGui::Text("Visible Layer");
     ImGui::Combo("##Visible Layer", &visible_layer, visible_layer_strs.data(), visible_layer_strs.size());
+    ImGui::Text("Brush Layer");
+    ImGui::Combo("##Brush Layer", &brush_layer, brush_layer_strs.data(), brush_layer_strs.size());
 }
 
 /**
@@ -41,6 +45,7 @@ void NavierStokes::gui() {
 void NavierStokes::reset_settings() {
     this->viscosity =  1.0f;
     this->visible_layer = 3;
+    this->brush_layer = 0;
 }
 
 /**

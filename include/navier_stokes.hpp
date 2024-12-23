@@ -10,6 +10,7 @@ public:
 
     int visible_layer;
     std::vector<const char*> visible_layer_strs;
+    std::vector<const char*> brush_layer_strs;
 
     ComputeShader navier_stokesCS;
 
