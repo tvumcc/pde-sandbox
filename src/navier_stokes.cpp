@@ -3,6 +3,7 @@
 
 #include "color_maps.hpp"
 #include "navier_stokes.hpp"
+#include "sandbox.hpp"
 
 #include <iostream>
 
@@ -46,6 +47,15 @@ void NavierStokes::reset_settings() {
     this->viscosity =  1.0f;
     this->visible_layer = 3;
     this->brush_layer = 0;
+}
+
+/**
+ * 
+ */
+void NavierStokes::use_recommended_settings(Sandbox& sandbox) {
+    sandbox.space_step = 0.5f;
+    sandbox.time_step = 0.03f;
+    sandbox.curr_boundary_condition = 0;
 }
 
 /**

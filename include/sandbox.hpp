@@ -35,7 +35,6 @@ public:
     void advance_step();
     void bind_current_grid();
     void brush(double x_pos, double y_pos);
-private:
     void reset_settings();
     void reset_grid();
 };

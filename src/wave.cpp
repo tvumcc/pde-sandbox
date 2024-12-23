@@ -3,6 +3,7 @@
 
 #include "color_maps.hpp"
 #include "wave.hpp"
+#include "sandbox.hpp"
 
 #include <iostream>
 
@@ -28,7 +29,20 @@ void Wave::gui() {}
 /**
  * Reset all simulation specific settings to default
  */
-void Wave::reset_settings() {}
+void Wave::reset_settings() {
+    this->brush_radius = 3;
+}
+
+/**
+ * 
+ */
+void Wave::use_recommended_settings(Sandbox& sandbox) {
+    sandbox.resolution = 2;
+    sandbox.space_step = 0.1f;
+    sandbox.time_step = 0.01f;
+    sandbox.curr_boundary_condition = 1;
+    sandbox.resize(sandbox.window_width, sandbox.window_height);
+}
 
 /**
  * Send the uniforms for this simulation to the compute shader

@@ -3,6 +3,7 @@
 
 #include "color_maps.hpp"
 #include "gray_scott.hpp"
+#include "sandbox.hpp"
 
 #include <iostream>
 
@@ -68,6 +69,15 @@ void GrayScott::reset_settings() {
     this->D = 2.0f;
     curr_preset = 3;
     curr_layer = 0;
+}
+
+/**
+ * 
+ */
+void GrayScott::use_recommended_settings(Sandbox& sandbox) {
+    sandbox.space_step = 5.0f;
+    sandbox.time_step = 0.5f;
+    sandbox.curr_boundary_condition = 0;
 }
 
 /**

@@ -3,6 +3,7 @@
 
 #include "color_maps.hpp"
 #include "heat.hpp"
+#include "sandbox.hpp"
 
 #include <iostream>
 
@@ -35,6 +36,15 @@ void Heat::reset_settings() {
     this->diffusion = 1.0;
     this->brush_radius = 10;
     this->brush_type = 0;
+}
+
+/**
+ * 
+ */
+void Heat::use_recommended_settings(Sandbox& sandbox) {
+    sandbox.space_step = 3.0f;
+    sandbox.time_step = 0.5f;
+    sandbox.curr_boundary_condition = 1;
 }
 
 /**

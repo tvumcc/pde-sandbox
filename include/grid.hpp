@@ -2,6 +2,8 @@
 #include <vector>
 #include <string>
 
+class Sandbox;
+
 class Grid {
 public:
     int width;
@@ -30,5 +32,6 @@ public:
     virtual void solve() = 0;
     virtual void gui() = 0;
     virtual void reset_settings() = 0;
+    virtual void use_recommended_settings(Sandbox& sandbox) = 0;
     virtual void set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) = 0;
 };

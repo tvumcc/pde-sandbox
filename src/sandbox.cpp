@@ -62,7 +62,10 @@ void Sandbox::render_gui() {
     ImGui::SeparatorText("Simulation");
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     ImGui::Text("Simulation");
-    if (ImGui::Combo("##Simulation", &curr_sim, sim_strs.data(), sim_strs.size())) grid = grids[curr_sim];
+    if (ImGui::Combo("##Simulation", &curr_sim, sim_strs.data(), sim_strs.size())) {
+        reset_settings();
+        reset_grid();
+    }
     ImGui::Text("Resolution (Pixels per Cell)");
     if (ImGui::SliderInt("##Resolution (Pixels per Cell)", &resolution, 1, 20))
         for (int i = 0; i < grids.size(); i++)
@@ -145,10 +148,8 @@ void Sandbox::brush(double x_pos, double y_pos) {
  * Resets simulation and PDE settings to their defaults
  */
 void Sandbox::reset_settings() {
-    space_step = 0.5;
-    time_step = 0.01;
-
     grids[curr_sim]->reset_settings();
+    grids[curr_sim]->use_recommended_settings(*this);
 }
 
 /**
