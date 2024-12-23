@@ -8,6 +8,9 @@ class NavierStokes : public Grid {
 public:
     float viscosity;
 
+    int visible_layer;
+    std::vector<const char*> visible_layer_strs;
+
     ComputeShader navier_stokesCS;
 
     NavierStokes(int width, int height);

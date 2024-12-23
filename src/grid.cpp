@@ -70,11 +70,6 @@ void Grid::clear() {
 
     for (int i = 0; i < layers.size(); i++) {
         std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
-        if (i == 3) { // temporary initialization for navier-stokes
-            for (int j = 0; j < width * height; j++) {
-                initial_data[j] = j / (float)(width * height);
-            }
-        }
 
         glGenTextures(1, &layers[i]);
         glBindTexture(GL_TEXTURE_2D, layers[i]);

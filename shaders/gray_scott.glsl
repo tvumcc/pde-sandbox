@@ -23,6 +23,7 @@ uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
 uniform int brush_radius;
+uniform int visible_layer;
 
 // Gray-Scott Reaction Diffusion specific settings
 uniform float a;
@@ -35,11 +36,6 @@ uniform vec3 c0, c1, c2, c3, c4, c5, c6;
 // 6th Order Polynomial Approximation for Matplotlib Color Maps
 vec3 cmap(float t) {
     return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));
-}
-
-// Translate x and y coordinates into a 1D index into an SSBO
-int getPosition(int x, int y) {
-    return (y * width) + x;
 }
 
 // Performs the remainder operation
@@ -126,5 +122,10 @@ void main() {
     float luminosity = (1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value);
     imageStore(u, location, vec4(luminosity));
     imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
-    imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(luminosity * 2.0))), 1.0));
+
+    if (visible_layer == 0) {
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(imageLoad(u, location).r * 2.0))), 1.0));
+    } else if (visible_layer == 1) {
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(imageLoad(v, location).r * 2.0))), 1.0));
+    }
 }

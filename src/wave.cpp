@@ -41,5 +41,13 @@ void Wave::set_uniforms(std::string cmap_str, int boundary_condition, bool pause
     waveCS.set_int("boundary_condition", boundary_condition);
     waveCS.set_float("dx", dx);
     waveCS.set_float("dt", dt);
+
+    waveCS.set_int("brush_layer", this->brush_layer);
+    waveCS.set_int("brush_enabled", this->brush_enabled);
+    waveCS.set_int("brush_type", this->brush_type);
+    waveCS.set_float("brush_value", this->brush_value);
+    waveCS.set_int("x_pos", this->x_pos);
+    waveCS.set_int("y_pos", this->y_pos);
+    waveCS.set_int("brush_radius", this->brush_radius);
     apply_cmap(waveCS, cmap_str);
 }

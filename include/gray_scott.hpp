@@ -9,6 +9,10 @@ public:
     float a;
     float b;
     float D;
+
+    std::vector<const char*> layer_strs;
+    int curr_layer;
+
     std::map<std::string, std::pair<float, float>> presets;
     std::vector<const char*> preset_strs;
     int curr_preset;

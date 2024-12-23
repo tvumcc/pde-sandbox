@@ -2,10 +2,10 @@
 
 layout (local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 layout (rgba32f, binding = 0) uniform image2D imgOutput;
-layout (std430, binding = 0) buffer ssbo1 {float u[];};
-layout (std430, binding = 1) buffer ssbo2 {float v[];};
-layout (std430, binding = 2) buffer ssbo3 {float p[];};
-layout (std430, binding = 3) buffer ssbo4 {float s[];};
+layout (r32f, binding = 1) uniform image2D u;
+layout (r32f, binding = 2) uniform image2D v;
+layout (r32f, binding = 3) uniform image2D p;
+layout (r32f, binding = 4) uniform image2D s;
 
 // Dimensions of the grids
 uniform int width;
@@ -17,26 +17,25 @@ uniform int boundary_condition;
 uniform float dx;
 uniform float dt;
 
+// Brush settings
+uniform int brush_layer;
+uniform int brush_enabled;
+uniform int brush_type;
+uniform float brush_value;
+uniform int x_pos;
+uniform int y_pos;
+uniform int brush_radius;
+uniform int visible_layer;
+
 // Navier-Stokes Reaction Diffusion specific settings
 uniform float viscosity;
 
 // Color Map Poly 6 Coefficients
-uniform vec3 c0;
-uniform vec3 c1;
-uniform vec3 c2;
-uniform vec3 c3;
-uniform vec3 c4;
-uniform vec3 c5;
-uniform vec3 c6;
+uniform vec3 c0, c1, c2, c3, c4, c5, c6;
 
 // 6th Order Polynomial Approximation for Matplotlib Color Maps
 vec3 cmap(float t) {
     return c0+t*(c1+t*(c2+t*(c3+t*(c4+t*(c5+t*c6)))));
-}
-
-// Translate x and y coordinates into a 1D index into an SSBO
-int getPosition(int x, int y) {
-    return (y * width) + x;
 }
 
 // Performs the remainder operation
@@ -48,42 +47,39 @@ int fmod(int x, int y) {
 float U(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
         if (boundary_condition == 2) { // Periodic Boundary Condition
-            return u[getPosition(fmod(x, width), fmod(y, height))];
+            return imageLoad(u, ivec2(fmod(x, width), fmod(y, height))).r;
         } else { // Dirichlet Boundary Condition
             return 0.0;
         }
     }
 
-    int position = getPosition(x, y);
-    return u[position];
+    return imageLoad(u, ivec2(x, y)).r;
 }
 
 // Accesses the value of the V grid at a coordinate while respecting value-based boundary conditions
 float V(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
         if (boundary_condition == 2) { // Periodic Boundary Condition
-            return v[getPosition(fmod(x, width), fmod(y, height))];
+            return imageLoad(v, ivec2(fmod(x, width), fmod(y, height))).r;
         } else { // Dirichlet Boundary Condition
             return 0.0;
         }
     }
 
-    int position = getPosition(x, y);
-    return v[position];
+    return imageLoad(v, ivec2(x, y)).r;
 }
 
 // Accesses the value of the P grid at a coordinate while respecting value-based boundary conditions
 float P(int x, int y) {
     if (x < 0 || x >= width || y < 0 || y >= height) {
         if (boundary_condition == 2) { // Periodic Boundary Condition
-            return p[getPosition(fmod(x, width), fmod(y, height))];
+            return imageLoad(p, ivec2(fmod(x, width), fmod(y, height))).r;
         } else { // Dirichlet Boundary Condition
             return 0.0;
         }
     }
 
-    int position = getPosition(x, y);
-    return p[position];
+    return imageLoad(p, ivec2(x, y)).r;
 }
 
 // Accesses the value of the S grid at a coordinate while respecting value-based boundary conditions
@@ -94,12 +90,11 @@ float S(int x, int y) {
         } else if (x >= width) {
             return 0.0;
         } else {
-            return s[getPosition(fmod(x, width), fmod(y, height))];
+            return imageLoad(s, ivec2(fmod(x, width), fmod(y, height))).r;
         }
     }
 
-    int position = getPosition(x, y);
-    return s[position];
+    return imageLoad(s, ivec2(x, y)).r;
 }
 
 // Computes the temporal derivative at a coordinate point in the U grid
@@ -223,25 +218,30 @@ float ds_dt(int x, int y) {
     return 0.05 * (d2s_dx2 + d2s_dy2) - (U(x, y) * ds_dx + V(x, y) * ds_dy);
 }
 
-// Use Euler's Method to make one step forward in time
-void euler(ivec2 location) {
+void main() {
+    ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+    int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - x_pos, 2) + pow(location.y - y_pos, 2))));
+    int pause = paused ? 0 : 1;
+
     float du_dt = du_dt(location.x, location.y);
     float dv_dt = dv_dt(location.x, location.y);
     float dp_dt = dp_dt(location.x, location.y);
     float ds_dt = ds_dt(location.x, location.y);
 
-    u[getPosition(location.x, location.y)] = U(location.x, location.y) + du_dt * dt;
-    v[getPosition(location.x, location.y)] = V(location.x, location.y) + dv_dt * dt;
-    p[getPosition(location.x, location.y)] = P(location.x, location.y) + dp_dt * dt;
-    s[getPosition(location.x, location.y)] = S(location.x, location.y) + ds_dt * dt;
-}
+    imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value)));
+    imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
+    imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+    imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
 
-void main() {
-    ivec2 location = ivec2(gl_GlobalInvocationID.xy);
+    if (visible_layer == 0) {
+        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, U(location.x, location.y)))), 1.0));
+    } else if (visible_layer == 1) {
+        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, V(location.x, location.y)))), 1.0));
+    } else if (visible_layer == 2) {
+        float magnitude = sqrt(pow(U(location.x, location.y), 2) + pow(V(location.x, location.y), 2));
+        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, imageLoad(u, location).r))), 1.0));
+    } else if (visible_layer == 3) {
+        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, S(location.x, location.y)))), 1.0));
+    }
 
-    if (!paused) euler(location);
-
-    // float luminosity = sqrt(pow(U(location.x, location.y), 2) + pow(V(location.x, location.y), 2));
-    float luminosity = S(location.x, location.y);
-    imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, luminosity))), 1.0));
 }

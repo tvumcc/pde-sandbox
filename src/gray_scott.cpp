@@ -26,6 +26,9 @@ GrayScott::GrayScott(int width, int height)
 
     for (const auto& kp : presets) preset_strs.push_back(kp.first.c_str());
 
+    layer_strs.resize(2);
+    layer_strs = {"Chemical A", "Chemical B"};
+
     reset_settings();
 }
 
@@ -47,6 +50,8 @@ void GrayScott::gui() {
     ImGui::SliderFloat("##b", &b, 0.0, 1.0);
     ImGui::Text("Diffusion (D)");
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
+    ImGui::Text("Visible Layer");
+    ImGui::Combo("##Visible Layer", &curr_layer, layer_strs.data(), layer_strs.size());
     ImGui::Text("Presets");
     if (ImGui::ListBox("##Preset", &curr_preset, preset_strs.data(), preset_strs.size())) {
         a = presets[std::string(preset_strs[curr_preset])].first;
@@ -62,6 +67,7 @@ void GrayScott::reset_settings() {
     this->b = 0.06f;
     this->D = 2.0f;
     curr_preset = 3;
+    curr_layer = 0;
 }
 
 /**
@@ -79,6 +85,7 @@ void GrayScott::set_uniforms(std::string cmap_str, int boundary_condition, bool 
     gray_scottCS.set_float("dx", dx);
     gray_scottCS.set_float("dt", dt);
 
+    gray_scottCS.set_int("visible_layer", this->curr_layer);
     gray_scottCS.set_int("brush_layer", this->brush_layer);
     gray_scottCS.set_int("brush_enabled", this->brush_enabled);
     gray_scottCS.set_int("brush_type", this->brush_type);
