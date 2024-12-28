@@ -11,6 +11,8 @@ NavierStokes::NavierStokes(int width, int height)
     : navier_stokesCS("shaders/navier_stokes.glsl"), Grid(width, height, 4, 0.0f)
 {
     brush_layer = 0;
+    prev_x_pos = -1;
+    prev_y_pos = -1;
 
     visible_layer_strs.resize(4);
     visible_layer_strs = {"Velocity (x)", "Velocity (y)", "Velocity (Magnitude)", "Dye"};
@@ -18,6 +20,23 @@ NavierStokes::NavierStokes(int width, int height)
     brush_layer_strs = {"Velocity", "Dye"};
 
     reset_settings();
+}
+
+/**
+ *  
+ */
+void NavierStokes::brush(int x_pos, int y_pos) {
+    if (this->brush_enabled && x_pos >= 0 && x_pos < this->width && y_pos >= 0 && y_pos < this->height) {
+        this->prev_x_pos = this->x_pos;
+        this->prev_y_pos = this->y_pos;
+    } else {
+        this->prev_x_pos = -1;
+        this->prev_y_pos = -1;
+    }
+
+    this->x_pos = x_pos;
+    this->y_pos = y_pos;
+    this->brush_enabled = this->x_pos >= 0 && this->x_pos < this->width && this->y_pos >= 0 && this->y_pos < this->height;
 }
 
 /**
@@ -78,6 +97,8 @@ void NavierStokes::set_uniforms(std::string cmap_str, int boundary_condition, bo
     navier_stokesCS.set_float("brush_value", this->brush_value);
     navier_stokesCS.set_int("x_pos", this->x_pos);
     navier_stokesCS.set_int("y_pos", this->y_pos);
+    navier_stokesCS.set_int("prev_x_pos", this->prev_x_pos);
+    navier_stokesCS.set_int("prev_y_pos", this->prev_y_pos);
     navier_stokesCS.set_int("brush_radius", this->brush_radius);
     apply_cmap(navier_stokesCS, cmap_str);
 }

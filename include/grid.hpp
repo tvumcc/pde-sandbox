@@ -28,6 +28,7 @@ public:
     void clear();
     void set_pixelated(bool pixels);
     void bind();
+    virtual void brush(int x_pos, int y_pos);
 
     virtual void solve() = 0;
     virtual void gui() = 0;

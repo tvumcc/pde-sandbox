@@ -139,9 +139,7 @@ void Sandbox::bind_current_grid() {
  * @param y_pos Y coordinate in window space as taken from the mouse
  */
 void Sandbox::brush(double x_pos, double y_pos) {
-    grids[curr_sim]->x_pos = (int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width);
-    grids[curr_sim]->y_pos = (int)(y_pos / window_height * grids[curr_sim]->height);
-    grids[curr_sim]->brush_enabled = grids[curr_sim]->x_pos >= 0 && grids[curr_sim]->x_pos < grids[curr_sim]->width && grids[curr_sim]->y_pos >= 0 && grids[curr_sim]->y_pos < grids[curr_sim]->height;
+    grids[curr_sim]->brush((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height));
 }
 
 /**

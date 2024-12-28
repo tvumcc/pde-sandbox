@@ -104,3 +104,12 @@ void Grid::bind() {
         glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
 }
+
+/**
+ * Updates the currently tracked mouse position and brush enabled status
+ */
+void Grid::brush(int x_pos, int y_pos) {
+    this->x_pos = x_pos;
+    this->y_pos = y_pos;
+    this->brush_enabled = this->x_pos >= 0 && this->x_pos < this->width && this->y_pos >= 0 && this->y_pos < this->height;
+}

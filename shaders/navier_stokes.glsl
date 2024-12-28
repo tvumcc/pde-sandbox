@@ -24,6 +24,8 @@ uniform int brush_type;
 uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
+uniform int prev_x_pos;
+uniform int prev_y_pos;
 uniform int brush_radius;
 uniform int visible_layer;
 
@@ -228,12 +230,21 @@ void main() {
     float dp_dt = dp_dt(location.x, location.y);
     float ds_dt = ds_dt(location.x, location.y);
 
-
     if (brush_layer == 0) {
-        imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value)));
-        imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
-        imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
-        imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+        if (brush_enabled == 1 && prev_x_pos >= 0 && prev_y_pos >= 0 && !(prev_x_pos == x_pos || prev_y_pos == y_pos)) {
+            int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - prev_x_pos, 2) + pow(location.y - prev_y_pos, 2))));
+            vec2 normal = 2.0 * normalize(vec2(float(x_pos - prev_x_pos), float(y_pos - prev_y_pos)));
+
+            imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * normal.x)));
+            imageStore(v, location, vec4((1 - brush_enabled * ratio) * (V(location.x, location.y) + dv_dt * dt * pause) + (brush_enabled * ratio * normal.y)));
+            imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+            imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+        } else {
+            imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt * pause));
+            imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
+            imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+            imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+        }
     } else if (brush_layer == 1) {
         imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt * pause));
         imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
@@ -243,14 +254,14 @@ void main() {
 
 
     if (visible_layer == 0) {
-        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, U(location.x, location.y)))), 1.0));
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(U(location.x, location.y)))), 1.0));
     } else if (visible_layer == 1) {
-        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, V(location.x, location.y)))), 1.0));
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(V(location.x, location.y)))), 1.0));
     } else if (visible_layer == 2) {
         float magnitude = sqrt(pow(U(location.x, location.y), 2) + pow(V(location.x, location.y), 2));
-        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, imageLoad(u, location).r))), 1.0));
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, magnitude)), 1.0));
     } else if (visible_layer == 3) {
-        imageStore(imgOutput, location, vec4(cmap(abs(min(1.0, S(location.x, location.y)))), 1.0));
+        imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(S(location.x, location.y)))), 1.0));
     }
 
 }
