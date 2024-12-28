@@ -20,8 +20,6 @@ uniform float dt;
 // Brush settings
 uniform int brush_layer;
 uniform int brush_enabled;
-uniform int brush_type;
-uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
 uniform int prev_x_pos;
@@ -224,6 +222,7 @@ void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
     int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - x_pos, 2) + pow(location.y - y_pos, 2))));
     int pause = paused ? 0 : 1;
+    float brush_value = 1.0f;
 
     float du_dt = du_dt(location.x, location.y);
     float dv_dt = dv_dt(location.x, location.y);
@@ -233,7 +232,7 @@ void main() {
     if (brush_layer == 0) {
         if (brush_enabled == 1 && prev_x_pos >= 0 && prev_y_pos >= 0 && !(prev_x_pos == x_pos || prev_y_pos == y_pos)) {
             int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - prev_x_pos, 2) + pow(location.y - prev_y_pos, 2))));
-            vec2 normal = 2.0 * normalize(vec2(float(x_pos - prev_x_pos), float(y_pos - prev_y_pos)));
+            vec2 normal = 2.0 * normalize(vec2(float(x_pos - prev_x_pos), float(y_pos - prev_y_pos))); // Double it to give it some more strength
 
             imageStore(u, location, vec4((1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * normal.x)));
             imageStore(v, location, vec4((1 - brush_enabled * ratio) * (V(location.x, location.y) + dv_dt * dt * pause) + (brush_enabled * ratio * normal.y)));

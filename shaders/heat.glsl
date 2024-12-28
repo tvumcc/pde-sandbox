@@ -15,10 +15,7 @@ uniform float dx;
 uniform float dt;
 
 // Brush settings
-uniform int brush_layer;
 uniform int brush_enabled;
-uniform int brush_type;
-uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
 uniform int brush_radius;
@@ -84,6 +81,7 @@ void main() {
 
     int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - x_pos, 2) + pow(location.y - y_pos, 2))));
     float du_dt = du_dt(location.x, location.y);
+    float brush_value = 1.0f;
     int pause = paused ? 0 : 1;
 
     // Avoid branching by using some clever mathematical manipulation

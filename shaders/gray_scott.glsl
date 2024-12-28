@@ -16,10 +16,7 @@ uniform float dx;
 uniform float dt;
 
 // Brush settings
-uniform int brush_layer;
 uniform int brush_enabled;
-uniform int brush_type;
-uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
 uniform int brush_radius;
@@ -114,6 +111,7 @@ float dv_dt(int x, int y) {
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
     int pause = paused ? 0 : 1;
+    float brush_value = 1.0f;
 
     float du_dt = du_dt(location.x, location.y);
     float dv_dt = dv_dt(location.x, location.y);

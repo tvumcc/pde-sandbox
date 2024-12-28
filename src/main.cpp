@@ -24,15 +24,15 @@ void setup();
 
 int main() {
 	setup();
-	Sandbox sandbox = Sandbox(WINDOW_WIDTH, WINDOW_HEIGHT);
+	Sandbox sandbox = Sandbox(WINDOW_WIDTH, WINDOW_HEIGHT, GUI_WIDTH);
 	glfwSetWindowUserPointer(window, &sandbox);
 	auto resize_window = [](GLFWwindow* window, int width, int height){
 		WINDOW_WIDTH = width;
 		WINDOW_HEIGHT = height;
 		Sandbox* sandbox = (Sandbox*)glfwGetWindowUserPointer(window);
 
+		sandbox->resize(width, height, GUI_WIDTH);
 		glViewport(0, 0, WINDOW_WIDTH - sandbox->gui_width, WINDOW_HEIGHT);
-		sandbox->resize(width, height);
 	};
     glfwSetFramebufferSizeCallback(window, resize_window);
 	resize_window(window, WINDOW_WIDTH, WINDOW_HEIGHT);
@@ -53,15 +53,14 @@ int main() {
 			glfwGetCursorPos(window, &x_pos, &y_pos);
 			sandbox.brush(x_pos, y_pos);
 		} else {
-			sandbox.grids[sandbox.curr_sim]->brush_enabled = false;
+			sandbox.grids[sandbox.sim]->brush_enabled = false;
 		}
 
 		sandbox.advance_step();
 
-		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 		shader.bind();
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, sandbox.grids[sandbox.curr_sim]->image);
+		glBindTexture(GL_TEXTURE_2D, sandbox.grids[sandbox.sim]->image);
 
 		glBindVertexArray(VAO);
 		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);

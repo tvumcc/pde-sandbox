@@ -16,10 +16,7 @@ uniform float dx;
 uniform float dt;
 
 // Brush settings
-uniform int brush_layer;
 uniform int brush_enabled;
-uniform int brush_type;
-uniform float brush_value;
 uniform int x_pos;
 uniform int y_pos;
 uniform int brush_radius;
@@ -91,6 +88,7 @@ void main() {
 
     float dv_dt = du_dt(location.x, location.y);
     int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - x_pos, 2) + pow(location.y - y_pos, 2))));
+    float brush_value = 1.0f;
 
     imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
     float luminosity = (1 - brush_enabled * ratio) * (U(location.x, location.y) + V(location.x, location.y) * dt * pause) + (brush_enabled * ratio * brush_value);

@@ -8,7 +8,7 @@
 #include <iostream>
 
 GrayScott::GrayScott(int width, int height) 
-    : gray_scottCS("shaders/gray_scott.glsl"), Grid(width, height, 2, 0.0f)
+    : gray_scottCS("shaders/gray_scott.glsl"), Grid(width, height, 2)
 {
     // See https://visualpde.com/nonlinear-physics/gray-scott/
     presets = {
@@ -34,15 +34,15 @@ GrayScott::GrayScott(int width, int height)
 }
 
 /**
- * Dispath the compute shader which solves the equation
+ * Dispatch the compute shader which solves the equation
  */
 void GrayScott::solve() {
-    glDispatchCompute(this->width, this->height, 1);
+    glDispatchCompute(width, height, 1);
     glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 /**
- * Render the GUI for the Heat Equation Simulation using ImGui
+ * Render the GUI for this specific equation
  */
 void GrayScott::gui() {
     ImGui::Text("Feed Rate (a)");
@@ -52,11 +52,11 @@ void GrayScott::gui() {
     ImGui::Text("Diffusion (D)");
     ImGui::SliderFloat("##D", &D, 0.0, 2.0);
     ImGui::Text("Visible Layer");
-    ImGui::Combo("##Visible Layer", &curr_layer, layer_strs.data(), layer_strs.size());
+    ImGui::Combo("##Visible Layer", &visible_layer, layer_strs.data(), layer_strs.size());
     ImGui::Text("Presets");
-    if (ImGui::ListBox("##Preset", &curr_preset, preset_strs.data(), preset_strs.size())) {
-        a = presets[std::string(preset_strs[curr_preset])].first;
-        b = presets[std::string(preset_strs[curr_preset])].second;
+    if (ImGui::ListBox("##Preset", &preset, preset_strs.data(), preset_strs.size())) {
+        a = presets[std::string(preset_strs[preset])].first;
+        b = presets[std::string(preset_strs[preset])].second;
     }
 }
 
@@ -64,44 +64,38 @@ void GrayScott::gui() {
  * Reset all simulation specific settings to default
  */
 void GrayScott::reset_settings() {
-    this->a =  0.037f;
-    this->b = 0.06f;
-    this->D = 2.0f;
-    curr_preset = 3;
-    curr_layer = 0;
-}
-
-/**
- * 
- */
-void GrayScott::use_recommended_settings(Sandbox& sandbox) {
-    sandbox.space_step = 5.0f;
-    sandbox.time_step = 0.5f;
-    sandbox.curr_boundary_condition = 0;
+    a =  0.037f;
+    b = 0.06f;
+    D = 2.0f;
+    preset = 3;
+    visible_layer = 0;
+    space_step = 5.0f;
+    time_step = 0.5f;
+    boundary_condition = 0;
 }
 
 /**
  * Send the uniforms for this simulation to the compute shader
+ * 
+ * @param cmap_str String representing a color map to use
+ * @param paused Is the simulation paused?
  */
-void GrayScott::set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) {
+void GrayScott::set_uniforms(std::string cmap_str, bool paused) {
     gray_scottCS.bind();
     gray_scottCS.set_bool("paused", paused);
-    gray_scottCS.set_int("width", this->width);
-    gray_scottCS.set_int("height", this->height);
+    gray_scottCS.set_int("width", width);
+    gray_scottCS.set_int("height", height);
     gray_scottCS.set_int("boundary_condition", boundary_condition);
-    gray_scottCS.set_float("a", this->a);    
-    gray_scottCS.set_float("b", this->b);
-    gray_scottCS.set_float("D", this->D);
-    gray_scottCS.set_float("dx", dx);
-    gray_scottCS.set_float("dt", dt);
+    gray_scottCS.set_float("a", a);    
+    gray_scottCS.set_float("b", b);
+    gray_scottCS.set_float("D", D);
+    gray_scottCS.set_float("dx", space_step);
+    gray_scottCS.set_float("dt", time_step);
 
-    gray_scottCS.set_int("visible_layer", this->curr_layer);
-    gray_scottCS.set_int("brush_layer", this->brush_layer);
-    gray_scottCS.set_int("brush_enabled", this->brush_enabled);
-    gray_scottCS.set_int("brush_type", this->brush_type);
-    gray_scottCS.set_float("brush_value", this->brush_value);
-    gray_scottCS.set_int("x_pos", this->x_pos);
-    gray_scottCS.set_int("y_pos", this->y_pos);
-    gray_scottCS.set_int("brush_radius", this->brush_radius);
+    gray_scottCS.set_int("visible_layer", visible_layer);
+    gray_scottCS.set_int("brush_enabled", brush_enabled);
+    gray_scottCS.set_int("x_pos", x_pos);
+    gray_scottCS.set_int("y_pos", y_pos);
+    gray_scottCS.set_int("brush_radius", brush_radius);
     apply_cmap(gray_scottCS, cmap_str);
 }

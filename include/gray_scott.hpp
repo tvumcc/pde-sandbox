@@ -11,11 +11,11 @@ public:
     float D;
 
     std::vector<const char*> layer_strs;
-    int curr_layer;
+    int visible_layer;
 
     std::map<std::string, std::pair<float, float>> presets;
     std::vector<const char*> preset_strs;
-    int curr_preset;
+    int preset;
 
     ComputeShader gray_scottCS;
 
@@ -24,6 +24,5 @@ public:
     void solve() override;
     void gui() override;
     void reset_settings() override;
-    void use_recommended_settings(Sandbox& sandbox) override;
-    void set_uniforms(std::string cmap_str, int boundary_condition, bool paused, float dx, float dt) override;
+    void set_uniforms(std::string cmap_str, bool paused) override;
 };

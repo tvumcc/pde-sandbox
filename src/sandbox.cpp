@@ -11,29 +11,28 @@
 
 #include <iostream>
 
-Sandbox::Sandbox(int width, int height) {
-    // Initialize grids
-	grids.emplace_back(std::make_shared<Heat>(width, height));
-	grids.emplace_back(std::make_shared<GrayScott>(width, height));
-	grids.emplace_back(std::make_shared<Wave>(width, height));
-	grids.emplace_back(std::make_shared<NavierStokes>(width, height));
+Sandbox::Sandbox(int window_width, int window_height, int gui_width) {
+	grids.emplace_back(std::make_shared<Heat>(window_width, window_height));
+	grids.emplace_back(std::make_shared<GrayScott>(window_width, window_height));
+	grids.emplace_back(std::make_shared<Wave>(window_width, window_height));
+	grids.emplace_back(std::make_shared<NavierStokes>(window_width, window_height));
 
-    window_width = width;
-    window_height = height;
-    gui_width = 320;
+    this->window_width = window_width;
+    this->window_height = window_height;
+    this->gui_width = gui_width;
 
     paused = false;
-    pixels = false;
-    resolution = 8;
+    pixelated = false;
 
-    curr_cmap = 1;
-    curr_sim = 0;
-    curr_boundary_condition = 0;
+    cmap = 1; // Set default color map to "Inferno"
+    sim = 0; // Set default simulation to "Heat Equation"
 
+    // Initialize the dropdown lists
     for (const auto& kp : cmaps) cmap_strs.push_back(kp.first.c_str());
-    sim_strs.resize(3); sim_strs = {"Heat Equation", "Gray-Scott Reaction Diffusion", "Wave Equation", "Navier-Stokes Fluid Flow"};
-    boundary_condition_strs.resize(3); boundary_condition_strs = {"Dirichlet", "Neumann", "Periodic"};
-    brush_strs.resize(2); brush_strs = {"Circle", "Gaussian"};
+    sim_strs.resize(3); 
+    sim_strs = {"Heat Equation", "Gray-Scott Reaction Diffusion", "Wave Equation", "Navier-Stokes Fluid Flow"};
+    boundary_condition_strs.resize(3); 
+    boundary_condition_strs = {"Dirichlet", "Neumann", "Periodic"};
 
     reset_grid();
     reset_settings();
@@ -62,41 +61,43 @@ void Sandbox::render_gui() {
     ImGui::SeparatorText("Simulation");
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
     ImGui::Text("Simulation");
-    if (ImGui::Combo("##Simulation", &curr_sim, sim_strs.data(), sim_strs.size())) {
+    if (ImGui::Combo("##Simulation", &sim, sim_strs.data(), sim_strs.size())) {
         reset_settings();
         reset_grid();
     }
     ImGui::Text("Resolution (Pixels per Cell)");
-    if (ImGui::SliderInt("##Resolution (Pixels per Cell)", &resolution, 1, 20))
-        for (int i = 0; i < grids.size(); i++)
-            grids[i]->resize((window_width - gui_width) / resolution, window_height / resolution);
-    ImGui::Text("Space Step (dx)");    ImGui::SliderFloat("##Space Step", &space_step, 0.1, 5.0);
-    ImGui::Text("Time Step (dt)");     ImGui::SliderFloat("##Time Step", &time_step, 0.01, 0.5);
-    ImGui::Text("Boundary Condition"); ImGui::Combo("##Boundary Condition", &curr_boundary_condition, boundary_condition_strs.data(), boundary_condition_strs.size());
+    if (ImGui::SliderInt("##Resolution (Pixels per Cell)", &grids[sim]->resolution, 1, 20))
+        grids[sim]->resize((window_width - gui_width) / grids[sim]->resolution, window_height / grids[sim]->resolution);
+    ImGui::Text("Space Step");    ImGui::SliderFloat("##Space Step", &grids[sim]->space_step, 0.1, 5.0);
+    ImGui::Text("Time Step");     ImGui::SliderFloat("##Time Step", &grids[sim]->time_step, 0.01, 0.5);
+    ImGui::Text("Boundary Condition"); ImGui::Combo("##Boundary Condition", &grids[sim]->boundary_condition, boundary_condition_strs.data(), boundary_condition_strs.size());
 
     // Control Buttons
     if (ImGui::Button(paused ? "Unpause" : "Pause")) paused = !paused;
-    ImGui::SameLine(); if (ImGui::Button("Reset Grid")) grids[curr_sim]->clear();
+    ImGui::SameLine(); if (ImGui::Button("Reset Grid")) grids[sim]->clear();
     ImGui::SameLine(); if (ImGui::Button("Reset Settings")) reset_settings();
 
     // Brush Section
     ImGui::SeparatorText("Brush");
-    ImGui::Text("Brush Radius");       ImGui::SliderInt("##Brush Radius", &(grids[curr_sim]->brush_radius), 1, 100);
-    ImGui::Text("Brush Type"); ImGui::Combo("##Brush Type", &(grids[curr_sim]->brush_type), brush_strs.data(), brush_strs.size());
+    ImGui::Text("Brush Radius"); 
+    ImGui::SliderInt("##Brush Radius", &(grids[sim]->brush_radius), 1, 100);
 
     // Visual Section
     ImGui::SeparatorText("Visual");
     ImGui::Text("Color Map");
-    ImGui::Combo("##Color Map", &curr_cmap, cmap_strs.data(), cmap_strs.size());
-    if (ImGui::Checkbox("Pixelated", &pixels))
+    ImGui::Combo("##Color Map", &cmap, cmap_strs.data(), cmap_strs.size());
+    if (ImGui::Checkbox("Pixelated", &pixelated))
         for (auto grid : grids) 
-            grid->set_pixelated(pixels);
+            grid->set_pixelated(pixelated);
     ImGui::PopItemWidth();
 
+
     // PDE specific section
-    ImGui::SeparatorText(sim_strs[curr_sim]);
+    ImGui::SeparatorText(sim_strs[sim]);
     ImGui::PushItemWidth(ImGui::GetContentRegionAvail().x);
-    grids[curr_sim]->gui();
+    grids[sim]->gui();
+
+
     ImGui::PopItemWidth();
     ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(3);
@@ -106,30 +107,32 @@ void Sandbox::render_gui() {
 /**
  *  Resizes all grids to the specified dimensions while also clearing them
  * 
- * @param width The new width
- * @param height The new height
+ * @param window_width The new width of the application window
+ * @param window_height The new height of the application window
+ * @param gui_width The new width of the sidebar UI
  */
-void Sandbox::resize(int width, int height) {
-    window_width = width;
-    window_height = height;
+void Sandbox::resize(int window_width, int window_height, int gui_width) {
+    this->window_width = window_width;
+    this->window_height = window_height;
+    this->gui_width = gui_width;
 
 	for (int i = 0; i < grids.size(); i++)
-		grids[i]->resize((width - gui_width) / resolution, height / resolution);
+		grids[i]->resize((window_width - gui_width) / grids[sim]->resolution, window_height / grids[sim]->resolution);
 }
 
 /**
  * Advances one time step in the simulation
  */
 void Sandbox::advance_step() {
-    grids[curr_sim]->set_uniforms(cmap_strs[curr_cmap], curr_boundary_condition, paused, space_step, time_step);
-    grids[curr_sim]->solve();
+    grids[sim]->set_uniforms(cmap_strs[cmap], paused);
+    grids[sim]->solve();
 }
 
 /**
- * Binds the currently selected grid to the simulation
+ * Binds the currently selected grid
  */
 void Sandbox::bind_current_grid() {
-    grids[curr_sim]->bind();
+    grids[sim]->bind();
 }
 
 /**
@@ -139,20 +142,22 @@ void Sandbox::bind_current_grid() {
  * @param y_pos Y coordinate in window space as taken from the mouse
  */
 void Sandbox::brush(double x_pos, double y_pos) {
-    grids[curr_sim]->brush((int)(x_pos / (window_width - gui_width) * grids[curr_sim]->width), (int)(y_pos / window_height * grids[curr_sim]->height));
+    grids[sim]->brush(
+        (int)(x_pos / (window_width - gui_width) * grids[sim]->width), 
+        (int)(y_pos / window_height * grids[sim]->height)
+    );
 }
 
 /**
- * Resets simulation and PDE settings to their defaults
+ * Resets settings for the currently selected grid to their defaults
  */
 void Sandbox::reset_settings() {
-    grids[curr_sim]->reset_settings();
-    grids[curr_sim]->use_recommended_settings(*this);
+    grids[sim]->reset_settings();
 }
 
 /**
  * Clears the currently selected grid
  */
 void Sandbox::reset_grid() {
-    grids[curr_sim]->clear();
+    grids[sim]->clear();
 }
