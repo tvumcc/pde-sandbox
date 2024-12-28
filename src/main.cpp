@@ -17,7 +17,7 @@
 GLFWwindow* window;
 unsigned int WINDOW_WIDTH = 1200;
 unsigned int WINDOW_HEIGHT = 1000;
-unsigned int GUI_WIDTH = 320;
+unsigned int GUI_WIDTH = 340;
 unsigned int VAO, VBO, EBO;
 
 void setup();
@@ -98,7 +98,7 @@ void setup() {
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "PDE Simulations", NULL, NULL);
+	window = glfwCreateWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "PDE 2D", NULL, NULL);
 	glfwMakeContextCurrent(window);
 	GLFWimage icons[2];
 	icons[0].pixels = stbi_load("assets/laplacian.png", &icons[0].width, &icons[0].height, 0, 4);

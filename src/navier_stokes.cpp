@@ -16,8 +16,8 @@ NavierStokes::NavierStokes(int width, int height)
 
     visible_layer_strs.resize(4);
     visible_layer_strs = {"Velocity (x)", "Velocity (y)", "Velocity (Magnitude)", "Dye"};
-    brush_layer_strs.resize(2);
-    brush_layer_strs = {"Velocity", "Dye"};
+    brush_layer_strs.resize(3);
+    brush_layer_strs = {"Velocity", "Force", "Dye"};
 
     reset_settings();
 }

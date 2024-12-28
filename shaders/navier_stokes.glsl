@@ -168,23 +168,22 @@ float dp_dt(int x, int y) {
     float du_dx = (U(x+1, y) - U(x, y)) / dx;
     float dv_dy = (V(x, y+1) - V(x, y)) / dx;
 
-    if (true) { // Neumann Boundary Condition
-        if (x == 0) {
-            dp_dx_0 = 0.0;
-            du_dx = 0.0;
-        }
-        if (x == width-1) {
-            dp_dx_1 = 0.0;
-            du_dx = 0.0;
-        }
-        if (y == 0) {
-            dp_dy_0 = 0.0;
-            dv_dy = 0.0;
-        }
-        if (y == height-1) {
-            dp_dy_1 = 0.0;
-            dv_dy = 0.0;
-        }
+    // Always apply Neumann Boundary Condition
+    if (x == 0) {
+        dp_dx_0 = 0.0;
+        du_dx = 0.0;
+    }
+    if (x == width-1) {
+        dp_dx_1 = 0.0;
+        du_dx = 0.0;
+    }
+    if (y == 0) {
+        dp_dy_0 = 0.0;
+        dv_dy = 0.0;
+    }
+    if (y == height-1) {
+        dp_dy_1 = 0.0;
+        dv_dy = 0.0;
     }
 
     float d2p_dx2 = (dp_dx_1 - dp_dx_0) / dx;
@@ -202,20 +201,13 @@ float ds_dt(int x, int y) {
     float ds_dy_0 = (S(x, y) - S(x, y-1)) / dx;
     float ds_dy_1 = (S(x, y+1) - S(x, y)) / dx;
 
-    if (false) { // Neumann Boundary Condition
-        if (x == 0) ds_dx_0 = 0.0;
-        if (x == width-1) ds_dx_1 = 0.0;
-        if (y == 0) ds_dy_0 = 0.0;
-        if (y == height-1) ds_dy_1 = 0.0;
-    }
-
     float ds_dx = (ds_dx_0 + ds_dx_1) * 0.5;
     float ds_dy = (ds_dy_0 + ds_dy_1) * 0.5;
 
     float d2s_dx2 = (ds_dx_1 - ds_dx_0) / dx;
     float d2s_dy2 = (ds_dy_1 - ds_dy_0) / dx;
 
-    return 0.05 * (d2s_dx2 + d2s_dy2) - (U(x, y) * ds_dx + V(x, y) * ds_dy);
+    return 0.2 * (d2s_dx2 + d2s_dy2) - (U(x, y) * ds_dx + V(x, y) * ds_dy);
 }
 
 void main() {
@@ -245,6 +237,21 @@ void main() {
             imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
         }
     } else if (brush_layer == 1) {
+        if (brush_enabled == 1 && prev_x_pos >= 0 && prev_y_pos >= 0 && !(prev_x_pos == x_pos || prev_y_pos == y_pos)) {
+            int ratio = int(min(1.0, pow(brush_radius, 2) / (pow(location.x - prev_x_pos, 2) + pow(location.y - prev_y_pos, 2))));
+            vec2 normal = 6.0 * normalize(vec2(float(x_pos - prev_x_pos), float(y_pos - prev_y_pos))); // Double it to give it some more strength
+
+            imageStore(u, location, vec4((U(location.x, location.y) + (du_dt + (brush_enabled * ratio * normal.x)) * dt * pause)));
+            imageStore(v, location, vec4((V(location.x, location.y) + (dv_dt + (brush_enabled * ratio * normal.y)) * dt * pause)));
+            imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+            imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+        } else {
+            imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt * pause));
+            imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
+            imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
+            imageStore(s, location, vec4(S(location.x, location.y) + ds_dt * dt * pause));
+        }
+    } else if (brush_layer == 2) {
         imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt * pause));
         imageStore(v, location, vec4(V(location.x, location.y) + dv_dt * dt * pause));
         imageStore(p, location, vec4(P(location.x, location.y) + dp_dt * dt * pause));
