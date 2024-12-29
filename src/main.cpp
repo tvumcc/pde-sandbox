@@ -56,7 +56,7 @@ int main() {
 			sandbox.grids[sandbox.sim]->brush_enabled = false;
 		}
 
-		sandbox.advance_step();
+		for (int i = 0; i < 10; i++) sandbox.advance_step();
 
 		shader.bind();
 		glActiveTexture(GL_TEXTURE0);

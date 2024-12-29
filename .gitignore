@@ -1,5 +1,6 @@
 .vscode/
 build/
+release/
 .cache/
 build.bat
 run.bat

@@ -70,12 +70,6 @@ float du_dt(int x, int y) {
     return alpha * (d2u_dx2 + d2u_dy2);
 }
 
-// Use Euler's Method to make one step forward in time
-void euler(ivec2 location) {
-    float du_dt = du_dt(location.x, location.y);
-    imageStore(u, location, vec4(U(location.x, location.y) + du_dt * dt));
-}
-
 void main() {
     ivec2 location = ivec2(gl_GlobalInvocationID.xy);
 
@@ -86,6 +80,6 @@ void main() {
 
     // Avoid branching by using some clever mathematical manipulation
     float luminosity = (1 - brush_enabled * ratio) * (U(location.x, location.y) + du_dt * dt * pause) + (brush_enabled * ratio * brush_value);
-    imageStore(u, location, vec4(luminosity));
+    imageStore(u, location, vec4(luminosity, 0.0, 0.0, 0.0));
     imageStore(imgOutput, location, vec4(cmap(min(1.0, abs(luminosity))), 1.0));
 }

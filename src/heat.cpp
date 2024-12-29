@@ -17,8 +17,8 @@ Heat::Heat(int width, int height)
  * Dispatch the compute shader which solves the equation
  */
 void Heat::solve() {
-    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT | GL_TEXTURE_UPDATE_BARRIER_BIT);
     glDispatchCompute(width, height, 1);
+    glMemoryBarrier(GL_SHADER_IMAGE_ACCESS_BARRIER_BIT);
 }
 
 /**

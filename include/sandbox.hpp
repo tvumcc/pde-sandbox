@@ -11,7 +11,6 @@ public:
     int gui_width; // Width of the sidebar UI
 
     // Visual Settings
-    bool pixelated; // Determines whether the grid's output image looks pixelated or not
     bool paused; // True if the simulation is paused and false otherwise
     int cmap; // Index of the currently selected color map
     int sim; // Index of the currently selected simulation

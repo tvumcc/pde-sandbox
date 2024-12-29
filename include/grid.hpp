@@ -20,6 +20,7 @@ public:
     float space_step; // The dx in the Finite Difference Approximation
     float time_step; // The dt in the Finite Difference Approximation
     int boundary_condition; // Specifies the behavior of the solution near the boundaries (Dirichlet, Neumann, or Periodic)
+    bool pixelated; // Determines whether the grid's output image looks pixelated or not
 
     // Texture IDs
     unsigned int image; // The ID for the output image 2D texture
@@ -29,7 +30,7 @@ public:
 
     void resize(int width, int height);
     void clear();
-    void set_pixelated(bool pixels);
+    void set_pixelated();
     void bind();
     virtual void brush(int x_pos, int y_pos);
 

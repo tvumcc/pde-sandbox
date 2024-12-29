@@ -26,15 +26,16 @@ Grid::Grid(int width, int height, int num_layers) {
     time_step = 0.1f;
     brush_radius = 10;
     resolution = 8;
+    pixelated = false;
 
     // Initialize the output image texture
 	glGenTextures(1, &image);
 	glBindTexture(GL_TEXTURE_2D, image);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixelated ? GL_NEAREST : GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
     // Initialize the texture for each layer
@@ -43,7 +44,7 @@ Grid::Grid(int width, int height, int num_layers) {
     for (int i = 0; i < layers.size(); i++) {
         glGenTextures(1, &layers[i]);
         glBindTexture(GL_TEXTURE_2D, layers[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, 0);
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
         glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
 }
@@ -64,15 +65,19 @@ void Grid::resize(int width, int height) {
  * Clears all textures to 0
  */
 void Grid::clear() {
+    glGenTextures(1, &image);
     glBindTexture(GL_TEXTURE_2D, image);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA32F, width, height, 0, GL_RGBA, GL_FLOAT, 0);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA32F, width, height);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixelated ? GL_NEAREST : GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glBindImageTexture(0, image, 0, GL_FALSE, 0, GL_READ_WRITE, GL_RGBA32F);
 
-    std::vector<float> initial_data = std::vector<float>(width * height, 0.0);
     for (int i = 0; i < layers.size(); i++) {
         glGenTextures(1, &layers[i]);
         glBindTexture(GL_TEXTURE_2D, layers[i]);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, width, height, 0, GL_RED, GL_FLOAT, initial_data.data());
+        glTexStorage2D(GL_TEXTURE_2D, 1, GL_R32F, width, height);
         glBindImageTexture(i+1, layers[i], 0, GL_FALSE, 0, GL_READ_WRITE, GL_R32F);
     }
 }
@@ -80,15 +85,10 @@ void Grid::clear() {
 /**
  * Changes the magnification filter of the image texture.
  * In effect, GL_NEAREST will make the image look pixelated while GL_LINEAR will smoothen it out.
- * 
- * @param pixels If true, image becomes pixelated and smooth otherwise
  */
-void Grid::set_pixelated(bool pixels) {
+void Grid::set_pixelated() {
     glBindTexture(GL_TEXTURE_2D, image);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixels ? GL_NEAREST : GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, pixelated ? GL_NEAREST : GL_LINEAR);
 }
 
 /**

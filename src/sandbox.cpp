@@ -22,7 +22,6 @@ Sandbox::Sandbox(int window_width, int window_height, int gui_width) {
     this->gui_width = gui_width;
 
     paused = false;
-    pixelated = false;
 
     cmap = 1; // Set default color map to "Inferno"
     sim = 0; // Set default simulation to "Heat Equation"
@@ -86,9 +85,7 @@ void Sandbox::render_gui() {
     ImGui::SeparatorText("Visual");
     ImGui::Text("Color Map");
     ImGui::Combo("##Color Map", &cmap, cmap_strs.data(), cmap_strs.size());
-    if (ImGui::Checkbox("Pixelated", &pixelated))
-        for (auto grid : grids) 
-            grid->set_pixelated(pixelated);
+    if (ImGui::Checkbox("Pixelated", &grids[sim]->pixelated)) grids[sim]->set_pixelated();
     ImGui::PopItemWidth();
 
 
